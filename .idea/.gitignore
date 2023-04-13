@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: CC0-1.0
+
+/compiler.xml
+/gradle.xml
+/jarRepositories.xml
+/kotlinc.xml
+/misc.xml
+/modules/
+/uiDesigner.xml
+/vcs.xml
+/workspace.xml
