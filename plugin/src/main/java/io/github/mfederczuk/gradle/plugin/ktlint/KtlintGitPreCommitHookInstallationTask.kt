@@ -6,11 +6,12 @@
 package io.github.mfederczuk.gradle.plugin.ktlint
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -20,6 +21,7 @@ import java.time.ZonedDateTime
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import java.util.jar.Manifest
+import javax.inject.Inject
 
 @DisableCachingByDefault(because = "Not worth caching")
 internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
@@ -31,6 +33,12 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS = "windows"
 		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER = "other"
 	}
+
+	@get:Inject
+	abstract val execOperations: ExecOperations
+
+	@get:Inject
+	abstract val projectLayout: ProjectLayout
 
 	@get:Input
 	abstract val taskName: Property<String>
@@ -45,7 +53,15 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
 		val hookScript: String = this.loadHookScript(ktlintClasspathJarFiles.toList(), taskName)
 
-		val gitPreCommitHookFile: File = determineGitPreCommitHookFilePath(project)
+		// TODO: switch to output property? determine git dir at configuration time?
+		//       this would generally be the better way to design this, but the problem is that to determine
+		//       the git dir, we need to execute an external program (git itself) and i don't think that's good idea to
+		//       do at configuration time...
+		val gitPreCommitHookFile: File =
+			determineGitPreCommitHookFilePath(
+				execOperations = this.execOperations,
+				projectDir = this.projectLayout.projectDirectory.asFile,
+			)
 		gitPreCommitHookFile.parentFile?.mkdirs()
 		gitPreCommitHookFile.writeText(hookScript)
 		gitPreCommitHookFile.setExecutable(true)
@@ -102,14 +118,14 @@ private fun isCurrentSystemWindows(): Boolean {
 	return ("win" in System.getProperty("os.name").lowercase())
 }
 
-private fun determineGitPreCommitHookFilePath(project: Project): File {
+private fun determineGitPreCommitHookFilePath(execOperations: ExecOperations, projectDir: File): File {
 	// this size was mostly chosen arbitrarily.
 	// we need at least 22 bytes because the most expected value will be ".git/hooks/pre-commit\n".
 	// absolute paths will probably where around 64 bytes
 	// 128 bytes should cover most cases
 	val stdout = ByteArrayOutputStream(128)
 
-	project
+	execOperations
 		.exec {
 			// TODO: does Windows need git.exe here?
 
@@ -138,7 +154,7 @@ private fun determineGitPreCommitHookFilePath(project: Project): File {
 	val gitPreCommitHookFilePath: String = stdout.toString(Charset.forName("UTF-8"))
 		.trimEnd() // remove trailing newlines
 
-	return project.projectDir.resolve(gitPreCommitHookFilePath)
+	return projectDir.resolve(gitPreCommitHookFilePath)
 		.relativeToCwd()
 }
 
