@@ -133,6 +133,12 @@ readonly using_intellij_idea_terminal
 
 #region running ktlint
 
+ktlint_android_opt_arg=''
+if ::IS_ANDROID::; then
+	ktlint_android_opt_arg='--android'
+fi
+readonly ktlint_android_opt_arg
+
 ktlint_relative_opt_arg='--relative'
 if $using_intellij_idea_terminal; then
 	# print absolute pathnames if executed via IntelliJ IDEA so that they become clickable
@@ -144,7 +150,10 @@ git_apply --reverse -- "$unstaged_changes_patch_file_pathname"
 printf 'Running ktlint...\n' >&2
 
 exc=0
-java -classpath "$ktlint_classpath" "$ktlint_main_class_name" $ktlint_relative_opt_arg --patterns-from-stdin='' < "$staged_kotlin_filename_list_file_pathname" ||
+java -classpath "$ktlint_classpath" "$ktlint_main_class_name" \
+     $ktlint_android_opt_arg \
+     $ktlint_relative_opt_arg \
+     --patterns-from-stdin='' < "$staged_kotlin_filename_list_file_pathname" ||
 	exc=$?
 
 if [ $exc -eq 0 ]; then
