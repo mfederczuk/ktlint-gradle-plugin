@@ -5,9 +5,9 @@
 
 # ktlint Gradle Plugin #
 
-[version_shield]: https://img.shields.io/badge/version-0.1.0--indev02-informational.svg
-[release_page]: https://github.com/mfederczuk/ktlint-gradle-plugin/releases/tag/v0.1.0-indev02 "Release v0.1.0-indev02"
-[![version: 0.1.0-indev02][version_shield]][release_page]
+[version_shield]: https://img.shields.io/badge/version-0.1.0--indev03-informational.svg
+[release_page]: https://github.com/mfederczuk/ktlint-gradle-plugin/releases/tag/v0.1.0-indev03 "Release v0.1.0-indev03"
+[![version: 0.1.0-indev03][version_shield]][release_page]
 [![Changelog](https://img.shields.io/badge/-Changelog-informational.svg)](CHANGELOG.md "Changelog")
 
 ## About ##
@@ -60,7 +60,7 @@ The main advantages/fixes of this plugin's hook are:
 
 ```kotlin
 plugins {
-	id("io.github.mfederczuk.ktlint") version "0.1.0-indev02"
+	id("io.github.mfederczuk.ktlint") version "0.1.0-indev03"
 }
 
 repositories {
@@ -86,7 +86,7 @@ buildscript {
 		maven("https://plugins.gradle.org/m2/")
 	}
 	dependencies {
-		classpath("io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev02")
+		classpath("io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev03")
 	}
 }
 
@@ -111,7 +111,7 @@ ktlint {
 
 ```groovy
 plugins {
-	id 'io.github.mfederczuk.ktlint' version '0.1.0-indev02'
+	id 'io.github.mfederczuk.ktlint' version '0.1.0-indev03'
 }
 
 repositories {
@@ -137,7 +137,7 @@ buildscript {
 		maven { url 'https://plugins.gradle.org/m2/' }
 	}
 	dependencies {
-		classpath 'io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev02'
+		classpath 'io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev03'
 	}
 }
 
