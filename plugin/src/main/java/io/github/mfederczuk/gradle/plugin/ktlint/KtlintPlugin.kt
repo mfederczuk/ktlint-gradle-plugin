@@ -33,7 +33,17 @@ public class KtlintPlugin : Plugin<Project> {
 	}
 
 	override fun apply(project: Project) {
-		val extension: KtlintPluginExtension = this.createExtension(extensionContainer = project.extensions)
+		val detectedProjectType: ProjectType =
+			when (project.plugins.hasAndroidPlugins()) {
+				true -> ProjectType.ANDROID
+				false -> ProjectType.OTHER
+			}
+
+		val extension: KtlintPluginExtension = this
+			.createExtension(
+				extensionContainer = project.extensions,
+				defaultProjectType = detectedProjectType,
+			)
 
 		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = extension.version
 			.map<Iterable<File>> { versionString: String ->
@@ -67,11 +77,14 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 	}
 
-	private fun createExtension(extensionContainer: ExtensionContainer): KtlintPluginExtension {
+	private fun createExtension(
+		extensionContainer: ExtensionContainer,
+		defaultProjectType: ProjectType,
+	): KtlintPluginExtension {
 		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
 		extension.installGitPreCommitHookBeforeBuild.convention(false)
-		extension.android.convention(false)
+		extension.android.convention(defaultProjectType.isAndroid())
 
 		return extension
 	}

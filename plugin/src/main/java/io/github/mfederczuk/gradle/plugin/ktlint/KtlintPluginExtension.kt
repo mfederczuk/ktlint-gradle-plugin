@@ -21,7 +21,9 @@ public interface KtlintPluginExtension {
 	 *
 	 * If set to `true`, then the flag `--android` will be added to the `ktlint` invocation.
 	 *
-	 * The default value is `false`.
+	 * The default value is automatically detected from the project's applied plugins.
+	 * If either the plugins `com.android.application` or `com.android.library` are applied, then the default value is
+	 * `true`, otherwise it is `false`.
 	 */
 	public val android: Property<Boolean>
 
