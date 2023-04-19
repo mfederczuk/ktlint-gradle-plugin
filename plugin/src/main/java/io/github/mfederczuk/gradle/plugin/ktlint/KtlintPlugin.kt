@@ -40,9 +40,8 @@ public class KtlintPlugin : Plugin<Project> {
 				val requestedKtlintVersion: SemVer? = SemVer.parseOrNull(versionString)
 
 				checkNotNull(requestedKtlintVersion) {
-					"String \"$versionString\" is not not a valid Semantic Version name.\n" +
-						"If you can't figure out the problem, go to https://github.com/pinterest/ktlint/releases and " +
-						"check if you've copied/written the version name correctly"
+					"String \"$versionString\" is not not a valid semantic version.\n" +
+						"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
 				}
 
 				this.resolveKtlintClasspathJarFilesFromVersion(project, requestedKtlintVersion)
