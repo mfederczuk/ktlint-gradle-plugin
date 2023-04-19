@@ -107,7 +107,7 @@ ktlint {
 <details>
 <summary>Groovy & plugins DSL</summary>
 
-```kotlin
+```groovy
 plugins {
 	id 'io.github.mfederczuk.ktlint' version '0.1.0-indev01'
 }
