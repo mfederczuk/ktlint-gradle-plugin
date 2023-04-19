@@ -39,10 +39,17 @@ public class KtlintPlugin : Plugin<Project> {
 			.map<Iterable<File>> { versionString: String ->
 				val requestedKtlintVersion: SemVer? = SemVer.parseOrNull(versionString)
 
+				if ((requestedKtlintVersion == null) && SemVer.isValid(versionString.removePrefix(prefix = "v"))) {
+					val msg: String =
+						"String \"$versionString\" is not a valid semantic version.\n" +
+							"Remove the leading 'v' character and " +
+							"use \"${versionString.removePrefix(prefix = "v")}\" instead"
+					error(msg)
+				}
+
 				checkNotNull(requestedKtlintVersion) {
-					"String \"$versionString\" is not not a valid Semantic Version name.\n" +
-						"If you can't figure out the problem, go to https://github.com/pinterest/ktlint/releases and " +
-						"check if you've copied/written the version name correctly"
+					"String \"$versionString\" is not not a valid semantic version.\n" +
+						"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
 				}
 
 				this.resolveKtlintClasspathJarFilesFromVersion(project, requestedKtlintVersion)
