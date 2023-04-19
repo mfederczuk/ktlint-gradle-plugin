@@ -48,7 +48,19 @@ public class KtlintPlugin : Plugin<Project> {
 				this.resolveKtlintClasspathJarFilesFromVersion(project, requestedKtlintVersion)
 			}
 
-		this.registerGitPreCommitHookInstallationTask(project, ktlintClasspathJarFilesProvider)
+		val projectTypeProvider: Provider<ProjectType> = extension.android
+			.map { isAndroidProject: Boolean ->
+				when (isAndroidProject) {
+					true -> ProjectType.ANDROID
+					false -> ProjectType.OTHER
+				}
+			}
+
+		this.registerGitPreCommitHookInstallationTask(
+			project,
+			ktlintClasspathJarFilesProvider,
+			projectTypeProvider,
+		)
 
 		project.afterEvaluate {
 			this@KtlintPlugin.setupAutomaticGitPreCommitHookInstallation(project = this@afterEvaluate)
@@ -59,6 +71,7 @@ public class KtlintPlugin : Plugin<Project> {
 		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
 		extension.installGitPreCommitHookBeforeBuild.convention(false)
+		extension.android.convention(false)
 
 		return extension
 	}
@@ -85,6 +98,7 @@ public class KtlintPlugin : Plugin<Project> {
 	private fun registerGitPreCommitHookInstallationTask(
 		project: Project,
 		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
+		projectTypeProvider: Provider<ProjectType>,
 	) {
 		project.tasks.register<KtlintGitPreCommitHookInstallationTask>(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
 			this@register.group = TASK_GROUP_NAME
@@ -92,6 +106,7 @@ public class KtlintPlugin : Plugin<Project> {
 
 			this@register.taskName.convention(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
 			this@register.classpathJarFiles.convention(ktlintClasspathJarFilesProvider)
+			this@register.projectType.convention(projectTypeProvider)
 		}
 	}
 

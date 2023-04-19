@@ -17,6 +17,15 @@ public interface KtlintPluginExtension {
 	public val version: Property<String>
 
 	/**
+	 * Whether or not this project is an android project.
+	 *
+	 * If set to `true`, then the flag `--android` will be added to the `ktlint` invocation.
+	 *
+	 * The default value is `false`.
+	 */
+	public val android: Property<Boolean>
+
+	/**
 	 * Whether or not to install the Git pre-commit hook before a build.
 	 *
 	 * This works by making either the "`pre-build`" or the "`build`" task dependent on the hook installation task.

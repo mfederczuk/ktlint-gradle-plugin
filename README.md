@@ -70,6 +70,7 @@ repositories {
 
 kotlin {
 	version.set("0.48.2") // set the version of ktlint
+	android.set(true) // optional: add the flag --android to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // optional: automatically installs the hook every time before a build is started
 }
 ```
@@ -98,6 +99,7 @@ repositories {
 
 ktlint {
 	version.set("0.48.2") // set the version of ktlint
+	android.set(true) // optional: add the flag --android to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // optional: automatically installs the hook every time before a build is started
 }
 ```
@@ -119,6 +121,7 @@ repositories {
 
 kotlin {
 	version = '0.48.2' // set the version of ktlint
+	android = true // optional: add the flag --android to ktlint
 	installGitPreCommitHookBeforeBuild = true // optional: automatically installs the hook every time before a build is started
 }
 ```
@@ -147,6 +150,7 @@ repositories {
 
 ktlint {
 	version = '0.48.2' // set the version of ktlint
+	android = true // optional: add the flag --android to ktlint
 	installGitPreCommitHookBeforeBuild = true // optional: automatically installs the hook every time before a build is started
 }
 ```
@@ -158,7 +162,7 @@ ktlint {
 ## Roadmap ##
 
 * [ ] Support for any ktlint version
-* [ ] Config to add the `--android` flag to `ktlint`
+* [x] Config to add the `--android` flag to `ktlint`
 * [ ] Automatically detecting Android projects and adding the `--android` flag if that is the case
 * [ ] Gradle task to run ktlint manually
 * [ ] Config to run ktlint over all Kotlin files, not just the ones that are staged

@@ -46,12 +46,21 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	@get:InputFiles
 	abstract val classpathJarFiles: Property<Iterable<File>>
 
+	@get:Input
+	abstract val projectType: Property<ProjectType>
+
 	@TaskAction
 	fun installKtlintGitPreCommitHook() {
 		val taskName: String = this.taskName.get()
 		val ktlintClasspathJarFiles: Iterable<File> = this.classpathJarFiles.get()
+		val projectType: ProjectType = this.projectType.get()
 
-		val hookScript: String = this.loadHookScript(ktlintClasspathJarFiles.toList(), taskName)
+		val hookScript: String = this
+			.loadHookScript(
+				ktlintClasspathJarFiles.toList(),
+				taskName,
+				projectType,
+			)
 
 		// TODO: switch to output property? determine git dir at configuration time?
 		//       this would generally be the better way to design this, but the problem is that to determine
@@ -67,7 +76,11 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		gitPreCommitHookFile.setExecutable(true)
 	}
 
-	private fun loadHookScript(ktlintClasspathJarFiles: List<File>, taskName: String): String {
+	private fun loadHookScript(
+		ktlintClasspathJarFiles: List<File>,
+		taskName: String,
+		projectType: ProjectType,
+	): String {
 		val platformDirComponent: String =
 			if (isCurrentSystemWindows()) {
 				HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS
@@ -94,6 +107,10 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 			.replace(
 				oldValue = "::HOOK_INSTALLATION_TASK_NAME::",
 				newValue = taskName.quoteForPosixShell(),
+			)
+			.replace(
+				oldValue = "::IS_ANDROID::",
+				newValue = projectType.isAndroid().toString(),
 			)
 	}
 }
