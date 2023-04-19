@@ -14,3 +14,7 @@ internal fun SemVer.Companion.parseOrNull(version: String): SemVer? {
 		null
 	}
 }
+
+internal fun SemVer.Companion.isValid(version: String): Boolean {
+	return (this.parseOrNull(version) != null)
+}
