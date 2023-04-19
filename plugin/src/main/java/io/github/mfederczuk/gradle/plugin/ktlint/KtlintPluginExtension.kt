@@ -28,8 +28,8 @@ public interface KtlintPluginExtension {
 	/**
 	 * Whether or not to install the Git pre-commit hook before a build.
 	 *
-	 * This works by making either the "`pre-build`" or the "`build`" task dependent on the hook installation task.
-	 * If the project that the plugin is applied to neither has a "`pre-build`" nor a "`build`" task, configuration will
+	 * This works by making either the "`preBuild`" or the "`build`" task dependent on the hook installation task.
+	 * If the project that the plugin is applied to neither has a "`preBuild`" nor a "`build`" task, configuration will
 	 * fail.
 	 *
 	 * The default value is `false`.
