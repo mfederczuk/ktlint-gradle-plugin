@@ -14,7 +14,7 @@ repositories {
 }
 
 group = "io.github.mfederczuk"
-version = "0.1.0-indev02"
+version = "0.1.0-indev03"
 
 kotlin {
 	explicitApi()

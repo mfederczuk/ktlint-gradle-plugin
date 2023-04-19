@@ -11,11 +11,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [**Keep a Changelog v1.0.0**](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased ##
+## [v0.1.0-indev03] - 2023-04-19 ##
+
+[v0.1.0-indev03]: <https://github.com/mfederczuk/ktlint-github-gradle-plugin/releases/tag/v0.1.0-indev03>
 
 ### Added ###
 
-* New `android` config
+* New `android` config ([`ad2a302`](https://github.com/mfederczuk/ktlint-gradle-plugin/commit/ad2a302d6f56993ae766cfe61a4414159f48bf4c))
 
 ## [v0.1.0-indev02] - 2023-04-19 ##
 
