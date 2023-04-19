@@ -68,7 +68,7 @@ repositories {
 	mavenCentral()
 }
 
-kotlin {
+ktlint {
 	version.set("0.48.2") // set the version of ktlint
 	android.set(true) // optional: add the flag --android to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // optional: automatically installs the hook every time before a build is started
@@ -119,7 +119,7 @@ repositories {
 	mavenCentral()
 }
 
-kotlin {
+ktlint {
 	version = '0.48.2' // set the version of ktlint
 	android = true // optional: add the flag --android to ktlint
 	installGitPreCommitHookBeforeBuild = true // optional: automatically installs the hook every time before a build is started
