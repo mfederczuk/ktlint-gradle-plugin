@@ -5,7 +5,9 @@
 package io.github.mfederczuk.gradle.plugin.ktlint
 
 import java.io.File
+import javax.annotation.CheckReturnValue
 
+@CheckReturnValue
 internal fun File.relativeToCwd(): File {
 	val cwd = File(System.getProperty("user.dir"))
 

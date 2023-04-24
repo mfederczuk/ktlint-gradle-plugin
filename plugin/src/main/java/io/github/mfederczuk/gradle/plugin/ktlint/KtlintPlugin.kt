@@ -20,6 +20,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.register
 import java.io.File
+import javax.annotation.CheckReturnValue
 
 public class KtlintPlugin : Plugin<Project> {
 
@@ -80,6 +81,7 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 	}
 
+	@CheckReturnValue
 	private fun createExtension(extensionContainer: ExtensionContainer): KtlintPluginExtension {
 		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
@@ -89,6 +91,7 @@ public class KtlintPlugin : Plugin<Project> {
 		return extension
 	}
 
+	@CheckReturnValue
 	private fun resolveKtlintClasspathJarFilesFromVersion(project: Project, version: SemVer): Set<File> {
 		val ktlintDependencyNotation = "$KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION:$version"
 		val ktlintDependency: Dependency = project.dependencies.create(ktlintDependencyNotation)
@@ -118,10 +121,10 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.group = TASK_GROUP_NAME
 			this@register.description = "Installs the ktlint Git pre-commit hook"
 
-			this@register.taskName.convention(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
-			this@register.classpathJarFiles.convention(ktlintClasspathJarFilesProvider)
-			this@register.projectType.convention(projectTypeProvider)
-			this@register.ktlintVersion.convention(ktlintVersionProvider)
+			this@register.taskName.set(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
+			this@register.classpathJarFiles.set(ktlintClasspathJarFilesProvider)
+			this@register.projectType.set(projectTypeProvider)
+			this@register.ktlintVersion.set(ktlintVersionProvider)
 		}
 	}
 
