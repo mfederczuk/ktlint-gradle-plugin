@@ -19,10 +19,17 @@ public interface KtlintPluginExtension {
 	/**
 	 * Whether or not this project is an android project.
 	 *
-	 * If set to `true`, then the flag `--android` will be added to the `ktlint` invocation.
+	 * If set to `true`, prior to ktlint version `0.49.0`, then the flag `--android` will be added to the `ktlint`
+	 * invocation. For ktlint version `0.49.0` and onwards, the option `--code-style=android_studio` is added instead.
 	 *
 	 * The default value is `false`.
 	 */
+	@Deprecated(
+		message = "Since ktlint version 0.49.0, the flag '--android' is deprecated in favor of " +
+			"'--code-style=android_studio', though it is recommended to instead set " +
+			"the EditorConfig property 'ktlint_code_style=android_studio' all together. " +
+			"If the configured version is before 0.49.0, then this warning can be ignored",
+	)
 	public val android: Property<Boolean>
 
 	/**

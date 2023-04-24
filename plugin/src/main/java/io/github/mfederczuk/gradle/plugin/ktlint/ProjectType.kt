@@ -8,10 +8,3 @@ internal enum class ProjectType {
 	OTHER,
 	ANDROID,
 }
-
-internal fun ProjectType.isAndroid(): Boolean {
-	return when (this) {
-		ProjectType.OTHER -> false
-		ProjectType.ANDROID -> true
-	}
-}

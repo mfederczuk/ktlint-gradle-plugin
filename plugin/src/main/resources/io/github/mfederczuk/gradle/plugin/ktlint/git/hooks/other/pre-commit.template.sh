@@ -133,10 +133,7 @@ readonly using_intellij_idea_terminal
 
 #region running ktlint
 
-ktlint_android_opt_arg=''
-if ::IS_ANDROID::; then
-	ktlint_android_opt_arg='--android'
-fi
+ktlint_android_opt_arg=::KTLINT_ANDROID_OPT_ARG::
 readonly ktlint_android_opt_arg
 
 ktlint_relative_opt_arg='--relative'

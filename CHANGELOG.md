@@ -17,6 +17,10 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 
 * The hook will now also print the configured ktlint version
 
+### Deprecated ###
+
+* The `android` config to mirror the deprecation of the `--android` flag
+
 ## [v0.1.0-indev03] - 2023-04-19 ##
 
 [v0.1.0-indev03]: <https://github.com/mfederczuk/ktlint-github-gradle-plugin/releases/tag/v0.1.0-indev03>
