@@ -71,6 +71,7 @@ repositories {
 ktlint {
 	version.set("0.49.0") // set the version of ktlint
 	android.set(true) // optional: add the flag --android to ktlint
+	limit.set(5) // optional: add the option --limit=5 to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // optional: automatically installs the hook every time before a build is started
 }
 ```
@@ -100,6 +101,7 @@ repositories {
 ktlint {
 	version.set("0.49.0") // set the version of ktlint
 	android.set(true) // optional: add the flag --android to ktlint
+	limit.set(5) // optional: add the option --limit=5 to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // optional: automatically installs the hook every time before a build is started
 }
 ```
@@ -122,6 +124,7 @@ repositories {
 ktlint {
 	version = '0.49.0' // set the version of ktlint
 	android = true // optional: add the flag --android to ktlint
+	limit = 5 // optional: add the option --limit=5 to ktlint
 	installGitPreCommitHookBeforeBuild = true // optional: automatically installs the hook every time before a build is started
 }
 ```
@@ -151,6 +154,7 @@ repositories {
 ktlint {
 	version = '0.49.0' // set the version of ktlint
 	android = true // optional: add the flag --android to ktlint
+	limit = 5 // optional: add the option --limit=5 to ktlint
 	installGitPreCommitHookBeforeBuild = true // optional: automatically installs the hook every time before a build is started
 }
 ```
