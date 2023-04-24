@@ -22,6 +22,7 @@ import java.time.ZonedDateTime
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import java.util.jar.Manifest
+import javax.annotation.CheckReturnValue
 import javax.inject.Inject
 
 @DisableCachingByDefault(because = "Not worth caching")
@@ -82,6 +83,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		gitPreCommitHookFile.setExecutable(true)
 	}
 
+	@CheckReturnValue
 	private fun loadHookScript(
 		ktlintClasspathJarFiles: List<File>,
 		taskName: String,
@@ -148,6 +150,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	}
 }
 
+@CheckReturnValue
 private fun File.extractJarFileMainClassName(): String {
 	val jarFile = JarFile(this)
 
@@ -164,10 +167,12 @@ private fun File.extractJarFileMainClassName(): String {
 	return mainClassName
 }
 
+@CheckReturnValue
 private fun isCurrentSystemWindows(): Boolean {
 	return ("win" in System.getProperty("os.name").lowercase())
 }
 
+@CheckReturnValue
 private fun determineGitPreCommitHookFilePath(execOperations: ExecOperations, projectDir: File): File {
 	// this size was mostly chosen arbitrarily.
 	// we need at least 22 bytes because the most expected value will be ".git/hooks/pre-commit\n".
@@ -208,6 +213,7 @@ private fun determineGitPreCommitHookFilePath(execOperations: ExecOperations, pr
 		.relativeToCwd()
 }
 
+@CheckReturnValue
 private fun String.quoteForPosixShell(): String {
 	return buildString(capacity = (this.length + 2)) {
 		this@buildString.append('\'')

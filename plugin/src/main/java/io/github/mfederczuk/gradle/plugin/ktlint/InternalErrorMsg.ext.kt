@@ -4,10 +4,13 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
+import javax.annotation.CheckReturnValue
+
 private const val REPORT_SENTENCE: String =
 	"Please report it at https://github.com/mfederczuk/ktlint-gradle-plugin/issues"
 
 internal val String.internalErrorMsg: String
+	@CheckReturnValue
 	get() {
 		return buildString(capacity = (this.length + 29 + REPORT_SENTENCE.length)) {
 			this@buildString.append(this@internalErrorMsg)

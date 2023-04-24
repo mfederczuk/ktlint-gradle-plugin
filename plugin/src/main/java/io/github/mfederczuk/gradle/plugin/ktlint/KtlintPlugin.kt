@@ -20,6 +20,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.register
 import java.io.File
+import javax.annotation.CheckReturnValue
 
 public class KtlintPlugin : Plugin<Project> {
 
@@ -80,6 +81,7 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 	}
 
+	@CheckReturnValue
 	private fun createExtension(extensionContainer: ExtensionContainer): KtlintPluginExtension {
 		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
@@ -89,6 +91,7 @@ public class KtlintPlugin : Plugin<Project> {
 		return extension
 	}
 
+	@CheckReturnValue
 	private fun resolveKtlintClasspathJarFilesFromVersion(project: Project, version: SemVer): Set<File> {
 		val ktlintDependencyNotation = "$KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION:$version"
 		val ktlintDependency: Dependency = project.dependencies.create(ktlintDependencyNotation)
