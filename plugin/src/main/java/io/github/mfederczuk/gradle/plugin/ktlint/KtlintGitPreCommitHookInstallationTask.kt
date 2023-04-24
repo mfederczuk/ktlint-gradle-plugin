@@ -99,6 +99,18 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
 		val mainClassName: String = ktlintClasspathJarFiles.first().extractJarFileMainClassName()
 
+		val ktlintAndroidOptArg: String =
+			when (projectType) {
+				ProjectType.OTHER -> ""
+				ProjectType.ANDROID -> {
+					if (ktlintVersion >= SemVer(0, 49, 0)) {
+						"--code-style=android_studio"
+					} else {
+						"--android"
+					}
+				}
+			}
+
 		return checkNotNull(this.javaClass.getResourceAsStream(hookScriptResourcePath))
 			.use { hookScriptTemplateInputStream: InputStream ->
 				String(hookScriptTemplateInputStream.readAllBytes(), Charset.forName("UTF-8"))
@@ -126,8 +138,8 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				newValue = taskName.quoteForPosixShell(),
 			)
 			.replace(
-				oldValue = "::IS_ANDROID::",
-				newValue = projectType.isAndroid().toString(),
+				oldValue = "::KTLINT_ANDROID_OPT_ARG::",
+				newValue = ktlintAndroidOptArg.quoteForPosixShell(),
 			)
 			.replace(
 				oldValue = "::KTLINT_VERSION::",

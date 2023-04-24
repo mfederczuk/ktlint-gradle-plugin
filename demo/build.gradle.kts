@@ -11,7 +11,7 @@ repositories {
 }
 
 ktlint {
-	version.set("0.48.2")
+	version.set("0.49.0")
 	// android.set(true)
 	installGitPreCommitHookBeforeBuild.set(true)
 }
