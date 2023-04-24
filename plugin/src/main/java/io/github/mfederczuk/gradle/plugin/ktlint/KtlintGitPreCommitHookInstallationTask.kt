@@ -5,6 +5,8 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
+import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
+import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
 import net.swiftzer.semver.SemVer
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ProjectLayout
@@ -90,19 +92,18 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		projectType: ProjectType,
 		ktlintVersion: SemVer,
 	): String {
-		val platformDirComponent: String =
-			if (isCurrentSystemWindows()) {
-				HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS
-			} else {
-				HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER
+		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
+			replace("GENERATED_DATETIME") with lazy {
+				ZonedDateTime.now().toString()
 			}
 
-		val hookScriptResourcePath: String = HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_FORMAT.format(platformDirComponent)
+			replace("KTLINT_CLASSPATH") with ktlintClasspathJarFiles.joinToString(separator = File.pathSeparator)
 
-		val mainClassName: String = ktlintClasspathJarFiles.first().extractJarFileMainClassName()
+			replace("KTLINT_MAIN_CLASS_NAME") with ktlintClasspathJarFiles.first().extractJarFileMainClassName()
 
-		val ktlintAndroidOptArg: String =
-			when (projectType) {
+			replace("HOOK_INSTALLATION_TASK_NAME") with taskName
+
+			replace("KTLINT_ANDROID_OPT_ARG") with when (projectType) {
 				ProjectType.OTHER -> ""
 				ProjectType.ANDROID -> {
 					if (ktlintVersion >= SemVer(0, 49, 0)) {
@@ -113,40 +114,24 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				}
 			}
 
-		return checkNotNull(this.javaClass.getResourceAsStream(hookScriptResourcePath))
+			replace("KTLINT_VERSION") with ktlintVersion.toString()
+		}
+
+		val platformDirComponent: String =
+			if (isCurrentSystemWindows()) {
+				HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS
+			} else {
+				HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER
+			}
+
+		val hookScriptResourcePath: String = HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_FORMAT.format(platformDirComponent)
+
+		val hookScriptTemplate: String = checkNotNull(this.javaClass.getResourceAsStream(hookScriptResourcePath))
 			.use { hookScriptTemplateInputStream: InputStream ->
 				String(hookScriptTemplateInputStream.readAllBytes(), Charset.forName("UTF-8"))
 			}
-			// TODO: this should be changed to a different system.
-			//       instead of just using replace, scan the script for formatting placeholders in the format of:
-			//           //<name>::<type>//
-			//       where <type> is either: 'comment', 'quoted_string' or 'bool'.
-			//       special 'comment' type so that newlines will pe prepended with '# '
-			//       also detect the indentation level to correctly format
-			//       e.g.:
-			//           //GENERATED_DATETIME::comment//
-			//           //KTLINT_CLASSPATH::quoted_string//
-			//           //IS_ANDROID::bool//
-			.replace(oldValue = "::GENERATED_DATETIME::", newValue = ZonedDateTime.now().toString())
-			.replace(
-				oldValue = "::KTLINT_CLASSPATH::",
-				newValue = ktlintClasspathJarFiles
-					.joinToString(separator = File.pathSeparator)
-					.quoteForPosixShell(),
-			)
-			.replace(oldValue = "::KTLINT_MAIN_CLASS_NAME::", newValue = mainClassName.quoteForPosixShell())
-			.replace(
-				oldValue = "::HOOK_INSTALLATION_TASK_NAME::",
-				newValue = taskName.quoteForPosixShell(),
-			)
-			.replace(
-				oldValue = "::KTLINT_ANDROID_OPT_ARG::",
-				newValue = ktlintAndroidOptArg.quoteForPosixShell(),
-			)
-			.replace(
-				oldValue = "::KTLINT_VERSION::",
-				newValue = ktlintVersion.toString().quoteForPosixShell(),
-			)
+
+		return engine.processString(hookScriptTemplate)
 	}
 }
 
@@ -211,13 +196,4 @@ private fun determineGitPreCommitHookFilePath(execOperations: ExecOperations, pr
 
 	return projectDir.resolve(gitPreCommitHookFilePath)
 		.relativeToCwd()
-}
-
-@CheckReturnValue
-private fun String.quoteForPosixShell(): String {
-	return buildString(capacity = (this.length + 2)) {
-		this@buildString.append('\'')
-		this@buildString.append(this@quoteForPosixShell.replace(oldValue = "'", newValue = "'\\''"))
-		this@buildString.append('\'')
-	}
 }

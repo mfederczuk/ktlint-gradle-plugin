@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
 
 # <https://github.com/pinterest/ktlint> custom pre-commit hook
-# Generated at ::GENERATED_DATETIME::
+# Generated at //GENERATED_DATETIME::comment//
 # DO NOT EDIT!
 
 #region preamble
@@ -99,10 +99,10 @@ if [ ! -s "$staged_kotlin_filename_list_file_pathname" ]; then
 	exit 0
 fi
 
-ktlint_classpath=::KTLINT_CLASSPATH::
+ktlint_classpath=//KTLINT_CLASSPATH::quoted_string//
 readonly ktlint_classpath
 
-ktlint_main_class_name=::KTLINT_MAIN_CLASS_NAME::
+ktlint_main_class_name=//KTLINT_MAIN_CLASS_NAME::quoted_string//
 readonly ktlint_main_class_name
 
 #region ktlint dry run
@@ -111,7 +111,7 @@ if ! java --dry-run -classpath "$ktlint_classpath" "$ktlint_main_class_name"; th
 	{
 		printf '%s: failed to execute ktlint\n' "$argv0"
 		# shellcheck disable=2016
-		printf '%s: running the Gradle sync and/or the Gradle task `%s` may fix it\n' "$argv0" ::HOOK_INSTALLATION_TASK_NAME::
+		printf '%s: running the Gradle sync and/or the Gradle task `%s` may fix it\n' "$argv0" //HOOK_INSTALLATION_TASK_NAME::quoted_string//
 	} >&2
 	exit 48
 fi
@@ -133,7 +133,7 @@ readonly using_intellij_idea_terminal
 
 #region running ktlint
 
-ktlint_android_opt_arg=::KTLINT_ANDROID_OPT_ARG::
+ktlint_android_opt_arg=//KTLINT_ANDROID_OPT_ARG::quoted_string//
 readonly ktlint_android_opt_arg
 
 ktlint_relative_opt_arg='--relative'
@@ -143,7 +143,7 @@ if $using_intellij_idea_terminal; then
 fi
 readonly ktlint_relative_opt_arg
 
-ktlint_version=::KTLINT_VERSION::
+ktlint_version=//KTLINT_VERSION::quoted_string//
 readonly ktlint_version
 
 git_apply --reverse -- "$unstaged_changes_patch_file_pathname"
