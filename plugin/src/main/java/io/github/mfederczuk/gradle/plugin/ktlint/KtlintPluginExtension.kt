@@ -16,6 +16,8 @@ public interface KtlintPluginExtension {
 	 */
 	public val version: Property<String>
 
+	// region ktlint CLI options
+
 	/**
 	 * Whether or not this project is an android project.
 	 *
@@ -31,6 +33,17 @@ public interface KtlintPluginExtension {
 			"If the configured version is before 0.49.0, then this warning can be ignored",
 	)
 	public val android: Property<Boolean>
+
+	/**
+	 * The maximum number of errors to show.
+	 *
+	 * If set, then the option `--limit=<limit>` will be added to the `ktlint` invocation.
+	 *
+	 * The default is no limit.
+	 */
+	public val limit: Property<Int>
+
+	// endregion
 
 	/**
 	 * Whether or not to install the Git pre-commit hook before a build.

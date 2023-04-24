@@ -56,6 +56,16 @@ public class KtlintPlugin : Plugin<Project> {
 				requestedKtlintVersion
 			}
 
+		val limitProvider: Provider<ErrorLimit> = extension.limit
+			.map<ErrorLimit> { n: Int ->
+				check(n >= 0) {
+					"Limit must be set to a positive integer"
+				}
+
+				ErrorLimit.Max(n.toUInt())
+			}
+			.orElse(ErrorLimit.None)
+
 		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = ktlintVersionProvider
 			.map<Iterable<File>> { version: SemVer ->
 				this.resolveKtlintClasspathJarFilesFromVersion(project, version)
@@ -73,6 +83,7 @@ public class KtlintPlugin : Plugin<Project> {
 			project,
 			ktlintClasspathJarFilesProvider,
 			projectTypeProvider,
+			limitProvider,
 			ktlintVersionProvider,
 		)
 
@@ -115,6 +126,7 @@ public class KtlintPlugin : Plugin<Project> {
 		project: Project,
 		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
 		projectTypeProvider: Provider<ProjectType>,
+		limitProvider: Provider<ErrorLimit>,
 		ktlintVersionProvider: Provider<SemVer>,
 	) {
 		project.tasks.register<KtlintGitPreCommitHookInstallationTask>(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
@@ -124,6 +136,7 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.taskName.set(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
 			this@register.classpathJarFiles.set(ktlintClasspathJarFilesProvider)
 			this@register.projectType.set(projectTypeProvider)
+			this@register.limit.set(limitProvider)
 			this@register.ktlintVersion.set(ktlintVersionProvider)
 		}
 	}

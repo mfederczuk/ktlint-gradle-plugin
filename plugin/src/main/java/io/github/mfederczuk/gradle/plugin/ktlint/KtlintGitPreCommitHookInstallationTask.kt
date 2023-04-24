@@ -48,6 +48,9 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	abstract val projectType: Property<ProjectType>
 
 	@get:Input
+	abstract val limit: Property<ErrorLimit>
+
+	@get:Input
 	abstract val ktlintVersion: Property<SemVer>
 
 	@TaskAction
@@ -55,6 +58,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		val taskName: String = this.taskName.get()
 		val ktlintClasspathJarFiles: Iterable<File> = this.classpathJarFiles.get()
 		val projectType: ProjectType = this.projectType.get()
+		val limit: ErrorLimit = this.limit.get()
 		val ktlintVersion: SemVer = this.ktlintVersion.get()
 
 		val hookScript: String = this
@@ -62,6 +66,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				ktlintClasspathJarFiles.toList(),
 				taskName,
 				projectType,
+				limit,
 				ktlintVersion,
 			)
 
@@ -80,6 +85,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		ktlintClasspathJarFiles: List<File>,
 		taskName: String,
 		projectType: ProjectType,
+		limit: ErrorLimit,
 		ktlintVersion: SemVer,
 	): String {
 		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
@@ -102,6 +108,11 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 						"--android"
 					}
 				}
+			}
+
+			replace("KTLINT_LIMIT_OPT_ARG") with when (limit) {
+				is ErrorLimit.None -> ""
+				is ErrorLimit.Max -> "--limit=${limit.n}"
 			}
 
 			replace("KTLINT_VERSION") with ktlintVersion.toString()
