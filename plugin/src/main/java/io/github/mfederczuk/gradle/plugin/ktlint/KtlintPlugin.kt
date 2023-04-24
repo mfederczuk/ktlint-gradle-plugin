@@ -121,10 +121,10 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.group = TASK_GROUP_NAME
 			this@register.description = "Installs the ktlint Git pre-commit hook"
 
-			this@register.taskName.convention(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
-			this@register.classpathJarFiles.convention(ktlintClasspathJarFilesProvider)
-			this@register.projectType.convention(projectTypeProvider)
-			this@register.ktlintVersion.convention(ktlintVersionProvider)
+			this@register.taskName.set(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
+			this@register.classpathJarFiles.set(ktlintClasspathJarFilesProvider)
+			this@register.projectType.set(projectTypeProvider)
+			this@register.ktlintVersion.set(ktlintVersionProvider)
 		}
 	}
 
