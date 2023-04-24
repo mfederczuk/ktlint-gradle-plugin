@@ -35,8 +35,8 @@ public class KtlintPlugin : Plugin<Project> {
 	override fun apply(project: Project) {
 		val extension: KtlintPluginExtension = this.createExtension(extensionContainer = project.extensions)
 
-		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = extension.version
-			.map<Iterable<File>> { versionString: String ->
+		val ktlintVersionProvider: Provider<SemVer> = extension.version
+			.map<SemVer> { versionString: String ->
 				val requestedKtlintVersion: SemVer? = SemVer.parseOrNull(versionString)
 
 				if ((requestedKtlintVersion == null) && SemVer.isValid(versionString.removePrefix(prefix = "v"))) {
@@ -52,7 +52,12 @@ public class KtlintPlugin : Plugin<Project> {
 						"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
 				}
 
-				this.resolveKtlintClasspathJarFilesFromVersion(project, requestedKtlintVersion)
+				requestedKtlintVersion
+			}
+
+		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = ktlintVersionProvider
+			.map<Iterable<File>> { version: SemVer ->
+				this.resolveKtlintClasspathJarFilesFromVersion(project, version)
 			}
 
 		val projectTypeProvider: Provider<ProjectType> = extension.android
@@ -67,6 +72,7 @@ public class KtlintPlugin : Plugin<Project> {
 			project,
 			ktlintClasspathJarFilesProvider,
 			projectTypeProvider,
+			ktlintVersionProvider,
 		)
 
 		project.afterEvaluate {
@@ -106,6 +112,7 @@ public class KtlintPlugin : Plugin<Project> {
 		project: Project,
 		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
 		projectTypeProvider: Provider<ProjectType>,
+		ktlintVersionProvider: Provider<SemVer>,
 	) {
 		project.tasks.register<KtlintGitPreCommitHookInstallationTask>(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
 			this@register.group = TASK_GROUP_NAME
@@ -114,6 +121,7 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.taskName.convention(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
 			this@register.classpathJarFiles.convention(ktlintClasspathJarFilesProvider)
 			this@register.projectType.convention(projectTypeProvider)
+			this@register.ktlintVersion.convention(ktlintVersionProvider)
 		}
 	}
 
