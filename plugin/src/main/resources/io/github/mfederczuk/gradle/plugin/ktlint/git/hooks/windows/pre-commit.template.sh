@@ -165,8 +165,11 @@ if $using_intellij_idea_terminal; then
 fi
 readonly ktlint_relative_opt_arg
 
+ktlint_version=::KTLINT_VERSION::
+readonly ktlint_version
+
 git_apply --reverse -- "$unstaged_changes_patch_file_pathname"
-printf 'Running ktlint...\n' >&2
+printf 'Running ktlint (v%s)...\n' "$ktlint_version" >&2
 
 exc=0
 java -classpath "$ktlint_classpath" "$ktlint_main_class_name" \

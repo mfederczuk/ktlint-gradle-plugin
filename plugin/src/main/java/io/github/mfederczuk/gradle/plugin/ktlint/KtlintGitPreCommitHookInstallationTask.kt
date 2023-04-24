@@ -5,6 +5,7 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
+import net.swiftzer.semver.SemVer
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Property
@@ -49,17 +50,22 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	@get:Input
 	abstract val projectType: Property<ProjectType>
 
+	@get:Input
+	abstract val ktlintVersion: Property<SemVer>
+
 	@TaskAction
 	fun installKtlintGitPreCommitHook() {
 		val taskName: String = this.taskName.get()
 		val ktlintClasspathJarFiles: Iterable<File> = this.classpathJarFiles.get()
 		val projectType: ProjectType = this.projectType.get()
+		val ktlintVersion: SemVer = this.ktlintVersion.get()
 
 		val hookScript: String = this
 			.loadHookScript(
 				ktlintClasspathJarFiles.toList(),
 				taskName,
 				projectType,
+				ktlintVersion,
 			)
 
 		// TODO: switch to output property? determine git dir at configuration time?
@@ -80,6 +86,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		ktlintClasspathJarFiles: List<File>,
 		taskName: String,
 		projectType: ProjectType,
+		ktlintVersion: SemVer,
 	): String {
 		val platformDirComponent: String =
 			if (isCurrentSystemWindows()) {
@@ -96,6 +103,16 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 			.use { hookScriptTemplateInputStream: InputStream ->
 				String(hookScriptTemplateInputStream.readAllBytes(), Charset.forName("UTF-8"))
 			}
+			// TODO: this should be changed to a different system.
+			//       instead of just using replace, scan the script for formatting placeholders in the format of:
+			//           //<name>::<type>//
+			//       where <type> is either: 'comment', 'quoted_string' or 'bool'.
+			//       special 'comment' type so that newlines will pe prepended with '# '
+			//       also detect the indentation level to correctly format
+			//       e.g.:
+			//           //GENERATED_DATETIME::comment//
+			//           //KTLINT_CLASSPATH::quoted_string//
+			//           //IS_ANDROID::bool//
 			.replace(oldValue = "::GENERATED_DATETIME::", newValue = ZonedDateTime.now().toString())
 			.replace(
 				oldValue = "::KTLINT_CLASSPATH::",
@@ -111,6 +128,10 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 			.replace(
 				oldValue = "::IS_ANDROID::",
 				newValue = projectType.isAndroid().toString(),
+			)
+			.replace(
+				oldValue = "::KTLINT_VERSION::",
+				newValue = ktlintVersion.toString().quoteForPosixShell(),
 			)
 	}
 }
