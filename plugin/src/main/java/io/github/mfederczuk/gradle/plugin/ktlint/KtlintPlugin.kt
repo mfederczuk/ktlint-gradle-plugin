@@ -27,6 +27,9 @@ public class KtlintPlugin : Plugin<Project> {
 	private companion object {
 		const val EXTENSION_NAME: String = "ktlint"
 
+		// flag --patterns-from-stdin (which is required for the hook) was introduced in 0.48.0
+		val MIN_SUPPORTED_KTLINT_VERSION: SemVer = SemVer(0, 48, 0)
+
 		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION: String = "com.pinterest:ktlint"
 
 		const val TASK_GROUP_NAME: String = "ktlint"
@@ -51,6 +54,11 @@ public class KtlintPlugin : Plugin<Project> {
 				checkNotNull(requestedKtlintVersion) {
 					"String \"$versionString\" is not not a valid semantic version.\n" +
 						"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
+				}
+
+				check(requestedKtlintVersion >= MIN_SUPPORTED_KTLINT_VERSION) {
+					"Configured ktlint version ($requestedKtlintVersion) is lower than " +
+						"minimum supported ktlint version $MIN_SUPPORTED_KTLINT_VERSION"
 				}
 
 				requestedKtlintVersion
