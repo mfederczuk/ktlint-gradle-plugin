@@ -16,11 +16,11 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 ### Added ###
 
 * The hook will now also print the configured ktlint version
-* New `limit` config for adding the `--limit=<limit>` flag to the ktlint invocation
+* New `limit` configuration property for adding the `--limit=<limit>` flag to the ktlint invocation
 
 ### Deprecated ###
 
-* The `android` config to mirror the deprecation of the `--android` flag
+* The `android` configuration property to mirror the deprecation of the `--android` flag
 
 ## [v0.1.0-indev03] - 2023-04-19 ##
 
@@ -28,7 +28,7 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 
 ### Added ###
 
-* New `android` config ([`ad2a302`](https://github.com/mfederczuk/ktlint-gradle-plugin/commit/ad2a302d6f56993ae766cfe61a4414159f48bf4c))
+* New `android` boolean configuration property ([`ad2a302`](https://github.com/mfederczuk/ktlint-gradle-plugin/commit/ad2a302d6f56993ae766cfe61a4414159f48bf4c))
 
 ## [v0.1.0-indev02] - 2023-04-19 ##
 

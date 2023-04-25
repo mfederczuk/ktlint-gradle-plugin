@@ -14,8 +14,7 @@
 
 This is a simple [Gradle] plugin for installing a custom [ktlint] Git pre-commit hook script.
 
-The advantages over using ktlint's built-in `installGitPreCommitHook` command or
-the `--install-git-pre-commit-hook` option are:
+The advantages over using ktlint's built-in `installGitPreCommitHook` command are:
 
 * The `ktlint` JAR is downloaded by the plugin from the Maven Central repository, which means that the JAR doesn't need
   to be pre-installed on the system
@@ -53,6 +52,8 @@ The main advantages/fixes of this plugin's hook are:
 
 ## Configuration ##
 
+The minimum supported ktlint version is `0.48.0`.
+
 <!-- markdownlint-disable no-inline-html -->
 
 <details open>
@@ -70,9 +71,11 @@ repositories {
 
 ktlint {
 	version.set("0.49.0") // set the version of ktlint
-	android.set(true) // optional: add the flag --android to ktlint
-	limit.set(5) // optional: add the flag --limit=5 to ktlint
-	installGitPreCommitHookBeforeBuild.set(true) // optional: automatically installs the hook every time before a build is started
+
+	// the following configuration properties are optional
+	android.set(true) // add the --android flag to ktlint
+	limit.set(5) // add the --limit=5 flag to ktlint
+	installGitPreCommitHookBeforeBuild.set(true) // automatically installs the hook every time before a build is started
 }
 ```
 
@@ -100,9 +103,11 @@ repositories {
 
 ktlint {
 	version.set("0.49.0") // set the version of ktlint
-	android.set(true) // optional: add the flag --android to ktlint
-	limit.set(5) // optional: add the flag --limit=5 to ktlint
-	installGitPreCommitHookBeforeBuild.set(true) // optional: automatically installs the hook every time before a build is started
+
+	// the following configuration properties are optional
+	android.set(true) // add the --android flag to ktlint
+	limit.set(5) // add the --limit=5 flag to ktlint
+	installGitPreCommitHookBeforeBuild.set(true) // automatically installs the hook every time before a build is started
 }
 ```
 
@@ -123,9 +128,11 @@ repositories {
 
 ktlint {
 	version = '0.49.0' // set the version of ktlint
-	android = true // optional: add the flag --android to ktlint
-	limit = 5 // optional: add the flag --limit=5 to ktlint
-	installGitPreCommitHookBeforeBuild = true // optional: automatically installs the hook every time before a build is started
+
+	// the following configuration properties are optional
+	android = true // add the --android flag to ktlint
+	limit = 5 // add the --limit=5 flag to ktlint
+	installGitPreCommitHookBeforeBuild = true // automatically installs the hook every time before a build is started
 }
 ```
 
@@ -153,9 +160,11 @@ repositories {
 
 ktlint {
 	version = '0.49.0' // set the version of ktlint
-	android = true // optional: add the flag --android to ktlint
-	limit = 5 // optional: add the flag --limit=5 to ktlint
-	installGitPreCommitHookBeforeBuild = true // optional: automatically installs the hook every time before a build is started
+
+	// the following configuration properties are optional
+	android = true // add the --android flag to ktlint
+	limit = 5 // add the --limit=5 flag to ktlint
+	installGitPreCommitHookBeforeBuild = true // automatically installs the hook every time before a build is started
 }
 ```
 
