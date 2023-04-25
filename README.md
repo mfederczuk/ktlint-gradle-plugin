@@ -172,13 +172,22 @@ ktlint {
 
 <!-- markdownlint-enable no-inline-html -->
 
-## Roadmap ##
+## To-Do List ##
 
-* [ ] Support for any ktlint version
-* [x] Config to add the `--android` flag to `ktlint`
-* [ ] Automatically detecting Android projects and adding the `--android` flag if that is the case
+* [x] Configuration property to add the `--android` flag to `ktlint`
+* [ ] Configuration property to add the `--code-style=<codeStyle>` flag to `ktlint`
+* [ ] Automatically detecting Android projects and adding the `--android` / `--code-style=android_studio` flag if that
+      is the case
+* [ ] Configuration property to add the `--disabled_rules=<disabledRules>` flag to `ktlint`
+* [x] Configuration property to add the `--limit=<limit>` flag to `ktlint`
+* [ ] Configuration property to add the `--reporter=<reporterConfiguration>` flag to `ktlint`
+* [ ] Configuration property to add the `--ruleset=<rulesetJarPaths>` flag to `ktlint`
+* [ ] Configuration property to add the `--editorconfig=<editorConfigPath>` flag to `ktlint`
+* [ ] Configuration property to add the `--experimental` flag to `ktlint`
+* [ ] Configuration property to add the `--baseline` flag to `ktlint`
+* [ ] Configuration property to add the `--log-level=<minLogLevel>` flag to `ktlint`
 * [ ] Gradle task to run ktlint manually
-* [ ] Config to run ktlint over all Kotlin files, not just the ones that are staged
+* [ ] Configuration property to run ktlint over all Kotlin files, not just the ones that are staged
 
 ## Contributing ##
 
