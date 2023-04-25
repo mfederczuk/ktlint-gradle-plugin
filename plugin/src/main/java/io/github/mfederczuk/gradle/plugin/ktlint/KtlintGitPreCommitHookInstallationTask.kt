@@ -38,27 +38,27 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	@get:Nested
 	abstract val gitService: GitService
 
+	@get:InputFiles
+	abstract val ktlintClasspathJarFiles: Property<Iterable<File>>
+
 	@get:Input
 	abstract val taskName: Property<String>
-
-	@get:InputFiles
-	abstract val classpathJarFiles: Property<Iterable<File>>
 
 	@get:Input
 	abstract val projectType: Property<ProjectType>
 
 	@get:Input
-	abstract val limit: Property<ErrorLimit>
+	abstract val errorLimit: Property<ErrorLimit>
 
 	@get:Input
 	abstract val ktlintVersion: Property<SemVer>
 
 	@TaskAction
 	fun installKtlintGitPreCommitHook() {
+		val ktlintClasspathJarFiles: Iterable<File> = this.ktlintClasspathJarFiles.get()
 		val taskName: String = this.taskName.get()
-		val ktlintClasspathJarFiles: Iterable<File> = this.classpathJarFiles.get()
 		val projectType: ProjectType = this.projectType.get()
-		val limit: ErrorLimit = this.limit.get()
+		val errorLimit: ErrorLimit = this.errorLimit.get()
 		val ktlintVersion: SemVer = this.ktlintVersion.get()
 
 		val hookScript: String = this
@@ -66,7 +66,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				ktlintClasspathJarFiles.toList(),
 				taskName,
 				projectType,
-				limit,
+				errorLimit,
 				ktlintVersion,
 			)
 
@@ -74,10 +74,10 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		//       this would generally be the better way to design this, but the problem is that to determine
 		//       the git dir, we need to execute an external program (git itself) and i don't think that's good idea to
 		//       do at configuration time...
-		val gitPreCommitHookFile: File = this.gitService.determinePreCommitHookFilePath()
-		gitPreCommitHookFile.parentFile?.mkdirs()
-		gitPreCommitHookFile.writeText(hookScript)
-		gitPreCommitHookFile.setExecutable(true)
+		val hookFile: File = this.gitService.determinePreCommitHookFilePath()
+		hookFile.parentFile?.mkdirs()
+		hookFile.writeText(hookScript)
+		hookFile.setExecutable(true)
 	}
 
 	@CheckReturnValue
@@ -85,7 +85,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		ktlintClasspathJarFiles: List<File>,
 		taskName: String,
 		projectType: ProjectType,
-		limit: ErrorLimit,
+		errorLimit: ErrorLimit,
 		ktlintVersion: SemVer,
 	): String {
 		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
@@ -110,14 +110,21 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				}
 			}
 
-			replace("KTLINT_LIMIT_OPT_ARG") with when (limit) {
+			replace("KTLINT_LIMIT_OPT_ARG") with when (errorLimit) {
 				is ErrorLimit.None -> ""
-				is ErrorLimit.Max -> "--limit=${limit.n}"
+				is ErrorLimit.Max -> "--limit=${errorLimit.n}"
 			}
 
 			replace("KTLINT_VERSION") with ktlintVersion.toString()
 		}
 
+		val hookScriptTemplate: String = this.loadHookScriptTemplate()
+
+		return engine.processString(hookScriptTemplate)
+	}
+
+	@CheckReturnValue
+	private fun loadHookScriptTemplate(): String {
 		val platformDirComponent: String =
 			if (isCurrentSystemWindows()) {
 				HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS
@@ -127,12 +134,10 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
 		val hookScriptResourcePath: String = HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_FORMAT.format(platformDirComponent)
 
-		val hookScriptTemplate: String = checkNotNull(this.javaClass.getResourceAsStream(hookScriptResourcePath))
+		return checkNotNull(this.javaClass.getResourceAsStream(hookScriptResourcePath))
 			.use { hookScriptTemplateInputStream: InputStream ->
 				String(hookScriptTemplateInputStream.readAllBytes(), Charset.forName("UTF-8"))
 			}
-
-		return engine.processString(hookScriptTemplate)
 	}
 }
 
