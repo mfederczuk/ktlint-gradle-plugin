@@ -96,7 +96,7 @@ public class KtlintPlugin : Plugin<Project> {
 		)
 
 		project.afterEvaluate {
-			this@KtlintPlugin.setupAutomaticGitPreCommitHookInstallation(project = this@afterEvaluate)
+			this@KtlintPlugin.afterEvaluate(project = this@afterEvaluate)
 		}
 	}
 
@@ -149,12 +149,18 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 	}
 
-	private fun setupAutomaticGitPreCommitHookInstallation(project: Project) {
+	// region afterEvaluate
+
+	private fun afterEvaluate(project: Project) {
 		val extension: KtlintPluginExtension? = project.extensions.findByType<KtlintPluginExtension>()
 		checkNotNull(extension) {
 			"Extension of type ${KtlintPluginExtension::class.java.name} not found in $project".internalErrorMsg
 		}
 
+		this.setupAutomaticGitPreCommitHookInstallation(project, extension)
+	}
+
+	private fun setupAutomaticGitPreCommitHookInstallation(project: Project, extension: KtlintPluginExtension) {
 		val installGitPreCommitHookBeforeBuild: Boolean = extension.installGitPreCommitHookBeforeBuild.get()
 		if (!installGitPreCommitHookBeforeBuild) {
 			return
@@ -177,4 +183,6 @@ public class KtlintPlugin : Plugin<Project> {
 
 		targetTask.dependsOn(gitPreCommitHookInstallationTask)
 	}
+
+	// endregion
 }
