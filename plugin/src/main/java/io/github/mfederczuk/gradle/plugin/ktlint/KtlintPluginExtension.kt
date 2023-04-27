@@ -16,13 +16,13 @@ public interface KtlintPluginExtension {
 	 */
 	public val version: Property<String>
 
-	// region ktlint CLI options
+	// region ktlint CLI flags
 
 	/**
 	 * Whether or not this project is an android project.
 	 *
 	 * If set to `true`, prior to ktlint version `0.49.0`, then the flag `--android` will be added to the `ktlint`
-	 * invocation. For ktlint version `0.49.0` and onwards, the option `--code-style=android_studio` is added instead.
+	 * invocation. For ktlint version `0.49.0` and onwards, the flag `--code-style=android_studio` is added instead.
 	 *
 	 * The default value is `false`.
 	 */
@@ -37,7 +37,7 @@ public interface KtlintPluginExtension {
 	/**
 	 * The maximum number of errors to show.
 	 *
-	 * If set, then the option `--limit=<limit>` will be added to the `ktlint` invocation.
+	 * If set, then the flag `--limit=<limit>` will be added to the `ktlint` invocation.
 	 *
 	 * The default is no limit.
 	 */

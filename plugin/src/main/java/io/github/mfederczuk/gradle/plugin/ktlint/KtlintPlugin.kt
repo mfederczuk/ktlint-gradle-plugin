@@ -28,12 +28,12 @@ public class KtlintPlugin : Plugin<Project> {
 		const val EXTENSION_NAME: String = "ktlint"
 
 		// flag --patterns-from-stdin (which is required for the hook) was introduced in 0.48.0
-		val MIN_SUPPORTED_KTLINT_VERSION: SemVer = SemVer(0, 48, 0)
+		val KTLINT_MIN_SUPPORTED_VERSION: SemVer = SemVer(0, 48, 0)
 
 		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION: String = "com.pinterest:ktlint"
 
 		const val TASK_GROUP_NAME: String = "ktlint"
-		const val GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME: String = "installKtlintGitPreCommitHook"
+		const val KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME: String = "installKtlintGitPreCommitHook"
 	}
 
 	override fun apply(project: Project) {
@@ -56,23 +56,13 @@ public class KtlintPlugin : Plugin<Project> {
 						"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
 				}
 
-				check(requestedKtlintVersion >= MIN_SUPPORTED_KTLINT_VERSION) {
+				check(requestedKtlintVersion >= KTLINT_MIN_SUPPORTED_VERSION) {
 					"Configured ktlint version ($requestedKtlintVersion) is lower than " +
-						"minimum supported ktlint version $MIN_SUPPORTED_KTLINT_VERSION"
+						"minimum supported ktlint version $KTLINT_MIN_SUPPORTED_VERSION"
 				}
 
 				requestedKtlintVersion
 			}
-
-		val limitProvider: Provider<ErrorLimit> = extension.limit
-			.map<ErrorLimit> { n: Int ->
-				check(n >= 0) {
-					"Limit must be set to a positive integer"
-				}
-
-				ErrorLimit.Max(n.toUInt())
-			}
-			.orElse(ErrorLimit.None)
 
 		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = ktlintVersionProvider
 			.map<Iterable<File>> { version: SemVer ->
@@ -87,11 +77,21 @@ public class KtlintPlugin : Plugin<Project> {
 				}
 			}
 
+		val errorLimitProvider: Provider<ErrorLimit> = extension.limit
+			.map<ErrorLimit> { n: Int ->
+				check(n >= 0) {
+					"Limit must be set to a positive integer"
+				}
+
+				ErrorLimit.Max(n.toUInt())
+			}
+			.orElse(ErrorLimit.None)
+
 		this.registerGitPreCommitHookInstallationTask(
 			project,
 			ktlintClasspathJarFilesProvider,
 			projectTypeProvider,
-			limitProvider,
+			errorLimitProvider,
 			ktlintVersionProvider,
 		)
 
@@ -111,8 +111,8 @@ public class KtlintPlugin : Plugin<Project> {
 	}
 
 	@CheckReturnValue
-	private fun resolveKtlintClasspathJarFilesFromVersion(project: Project, version: SemVer): Set<File> {
-		val ktlintDependencyNotation = "$KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION:$version"
+	private fun resolveKtlintClasspathJarFilesFromVersion(project: Project, ktlintVersion: SemVer): Set<File> {
+		val ktlintDependencyNotation = "$KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION:$ktlintVersion"
 		val ktlintDependency: Dependency = project.dependencies.create(ktlintDependencyNotation)
 
 		val configuration: Configuration = project.configurations.detachedConfiguration(ktlintDependency)
@@ -123,7 +123,7 @@ public class KtlintPlugin : Plugin<Project> {
 
 			val msg: String =
 				"Could not resolve the dependency \"$ktlintDependencyNotation\".\n" +
-					"Either the requested version ($version) does not exist or " +
+					"Either the requested version ($ktlintVersion) does not exist or " +
 					"Maven Central is missing from the dependency repositories.\n" +
 					"If it's neither of those causes, then ...".internalErrorMsg
 			error(msg)
@@ -134,17 +134,17 @@ public class KtlintPlugin : Plugin<Project> {
 		project: Project,
 		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
 		projectTypeProvider: Provider<ProjectType>,
-		limitProvider: Provider<ErrorLimit>,
+		errorLimitProvider: Provider<ErrorLimit>,
 		ktlintVersionProvider: Provider<SemVer>,
 	) {
-		project.tasks.register<KtlintGitPreCommitHookInstallationTask>(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
+		project.tasks.register<KtlintGitPreCommitHookInstallationTask>(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
 			this@register.group = TASK_GROUP_NAME
 			this@register.description = "Installs the ktlint Git pre-commit hook"
 
-			this@register.taskName.set(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
-			this@register.classpathJarFiles.set(ktlintClasspathJarFilesProvider)
+			this@register.ktlintClasspathJarFiles.set(ktlintClasspathJarFilesProvider)
+			this@register.taskName.set(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
 			this@register.projectType.set(projectTypeProvider)
-			this@register.limit.set(limitProvider)
+			this@register.errorLimit.set(errorLimitProvider)
 			this@register.ktlintVersion.set(ktlintVersionProvider)
 		}
 	}
@@ -170,9 +170,9 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 
 		val gitPreCommitHookInstallationTask: Task? =
-			project.tasks.findByName(GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
+			project.tasks.findByName(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
 		checkNotNull(gitPreCommitHookInstallationTask) {
-			"Task with name \"$GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME\" not found in $project".internalErrorMsg
+			"Task with name \"$KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME\" not found in $project".internalErrorMsg
 		}
 
 		targetTask.dependsOn(gitPreCommitHookInstallationTask)
