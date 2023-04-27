@@ -17,6 +17,7 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 
 * The hook will now also print the configured ktlint version
 * New `limit` configuration property for adding the `--limit=<limit>` flag to the ktlint invocation
+* New `codeStyle` configuration property for adding the `--code-stye=<codeStyle>` flag to the ktlint invocation
 
 ### Deprecated ###
 

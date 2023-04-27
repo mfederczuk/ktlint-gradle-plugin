@@ -14,6 +14,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.create
@@ -39,30 +40,7 @@ public class KtlintPlugin : Plugin<Project> {
 	override fun apply(project: Project) {
 		val extension: KtlintPluginExtension = this.createExtension(extensionContainer = project.extensions)
 
-		val ktlintVersionProvider: Provider<SemVer> = extension.version
-			.map<SemVer> { versionString: String ->
-				val requestedKtlintVersion: SemVer? = SemVer.parseOrNull(versionString)
-
-				if ((requestedKtlintVersion == null) && SemVer.isValid(versionString.removePrefix(prefix = "v"))) {
-					val msg: String =
-						"String \"$versionString\" is not a valid semantic version.\n" +
-							"Remove the leading 'v' character and " +
-							"use \"${versionString.removePrefix(prefix = "v")}\" instead"
-					error(msg)
-				}
-
-				checkNotNull(requestedKtlintVersion) {
-					"String \"$versionString\" is not not a valid semantic version.\n" +
-						"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
-				}
-
-				check(requestedKtlintVersion >= KTLINT_MIN_SUPPORTED_VERSION) {
-					"Configured ktlint version ($requestedKtlintVersion) is lower than " +
-						"minimum supported ktlint version $KTLINT_MIN_SUPPORTED_VERSION"
-				}
-
-				requestedKtlintVersion
-			}
+		val ktlintVersionProvider: Provider<SemVer> = extension.checkedKtlintVersion
 
 		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = ktlintVersionProvider
 			.map<Iterable<File>> { version: SemVer ->
@@ -90,6 +68,7 @@ public class KtlintPlugin : Plugin<Project> {
 		this.registerGitPreCommitHookInstallationTask(
 			project,
 			ktlintClasspathJarFilesProvider,
+			codeStyleProvider = extension.codeStyleAsDistinctType,
 			projectTypeProvider,
 			errorLimitProvider,
 			ktlintVersionProvider,
@@ -133,6 +112,7 @@ public class KtlintPlugin : Plugin<Project> {
 	private fun registerGitPreCommitHookInstallationTask(
 		project: Project,
 		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
+		codeStyleProvider: Provider<CodeStyle>,
 		projectTypeProvider: Provider<ProjectType>,
 		errorLimitProvider: Provider<ErrorLimit>,
 		ktlintVersionProvider: Provider<SemVer>,
@@ -143,6 +123,7 @@ public class KtlintPlugin : Plugin<Project> {
 
 			this@register.ktlintClasspathJarFiles.set(ktlintClasspathJarFilesProvider)
 			this@register.taskName.set(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
+			this@register.codeStyle.set(codeStyleProvider)
 			this@register.projectType.set(projectTypeProvider)
 			this@register.errorLimit.set(errorLimitProvider)
 			this@register.ktlintVersion.set(ktlintVersionProvider)
@@ -157,7 +138,50 @@ public class KtlintPlugin : Plugin<Project> {
 			"Extension of type ${KtlintPluginExtension::class.java.name} not found in $project".internalErrorMsg
 		}
 
+		this.checkCodeStyleProperties(logger = project.logger, extension)
+
 		this.setupAutomaticGitPreCommitHookInstallation(project, extension)
+	}
+
+	private fun checkCodeStyleProperties(logger: Logger, extension: KtlintPluginExtension) {
+		val ktlintVersion: SemVer = extension.checkedKtlintVersion.get()
+		val codeStyleProvider: Provider<CodeStyle> = extension.codeStyleAsDistinctType
+
+		if (ktlintVersion < SemVer(0, 49, 0)) {
+			when (codeStyleProvider.get()) {
+				is CodeStyle.Default -> Unit
+				is CodeStyle.Specific -> {
+					val msg: String =
+						"The property `codeStyle` is only available for ktlint version 0.49.0 and above.\n" +
+							"Either bump the configured ktlint version up or use the property `android` instead"
+					incompatibleConfiguration(msg)
+				}
+			}
+
+			return
+		}
+
+		val isAndroidProject: Boolean = extension.android.get()
+		if (!isAndroidProject) {
+			return
+		}
+
+		when (codeStyleProvider.get()) {
+			is CodeStyle.Default -> {
+				val msg: String =
+					"Since ktlint version 0.49.0 the --android flag is deprecated.\n" +
+						"Consider migrating to the --code-style flag. " +
+						"(Kotlin: `codeStyle.set(AndroidStudio)` / Groovy: `codeStyle = 'android_studio'`)"
+				logger.warn(msg)
+			}
+
+			is CodeStyle.Specific -> {
+				val msg: String =
+					"Both properties `codeStyle` and `android` are set.\n" +
+						"Use either one or none, but not both"
+				incompatibleConfiguration(msg)
+			}
+		}
 	}
 
 	private fun setupAutomaticGitPreCommitHookInstallation(project: Project, extension: KtlintPluginExtension) {
@@ -185,4 +209,47 @@ public class KtlintPlugin : Plugin<Project> {
 	}
 
 	// endregion
+
+	// region extension extensions... yeah
+
+	private val KtlintPluginExtension.checkedKtlintVersion: Provider<SemVer>
+		get() {
+			return this@checkedKtlintVersion.version
+				.map<SemVer> { versionString: String ->
+					val requestedKtlintVersion: SemVer? = SemVer.parseOrNull(versionString)
+
+					if ((requestedKtlintVersion == null) && SemVer.isValid(versionString.removePrefix(prefix = "v"))) {
+						val msg: String =
+							"String \"$versionString\" is not a valid semantic version.\n" +
+								"Remove the leading 'v' character and " +
+								"use \"${versionString.removePrefix(prefix = "v")}\" instead"
+						error(msg)
+					}
+
+					checkNotNull(requestedKtlintVersion) {
+						"String \"$versionString\" is not not a valid semantic version.\n" +
+							"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
+					}
+
+					check(requestedKtlintVersion >= KTLINT_MIN_SUPPORTED_VERSION) {
+						"Configured ktlint version ($requestedKtlintVersion) is lower than " +
+							"minimum supported ktlint version $KTLINT_MIN_SUPPORTED_VERSION"
+					}
+
+					requestedKtlintVersion
+				}
+		}
+
+	private val KtlintPluginExtension.codeStyleAsDistinctType: Provider<CodeStyle>
+		get() {
+			return this@codeStyleAsDistinctType.codeStyle
+				.map<CodeStyle>(CodeStyle::Specific)
+				.orElse(CodeStyle.Default)
+		}
+
+	// endregion
+
+	private fun incompatibleConfiguration(msg: String): Nothing {
+		error("Incompatible configuration; $msg")
+	}
 }

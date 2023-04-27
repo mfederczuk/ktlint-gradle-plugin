@@ -44,6 +44,9 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	abstract val taskName: Property<String>
 
 	@get:Input
+	abstract val codeStyle: Property<CodeStyle>
+
+	@get:Input
 	abstract val projectType: Property<ProjectType>
 
 	@get:Input
@@ -56,6 +59,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	fun installKtlintGitPreCommitHook() {
 		val ktlintClasspathJarFiles: Iterable<File> = this.ktlintClasspathJarFiles.get()
 		val taskName: String = this.taskName.get()
+		val codeStyle: CodeStyle = this.codeStyle.get()
 		val projectType: ProjectType = this.projectType.get()
 		val errorLimit: ErrorLimit = this.errorLimit.get()
 		val ktlintVersion: SemVer = this.ktlintVersion.get()
@@ -64,6 +68,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 			.loadHookScript(
 				ktlintClasspathJarFiles.toList(),
 				taskName,
+				codeStyle,
 				projectType,
 				errorLimit,
 				ktlintVersion,
@@ -83,6 +88,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	private fun loadHookScript(
 		ktlintClasspathJarFiles: List<File>,
 		taskName: String,
+		codeStyle: CodeStyle,
 		projectType: ProjectType,
 		errorLimit: ErrorLimit,
 		ktlintVersion: SemVer,
@@ -100,13 +106,16 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
 			replace placeholder "HOOK_INSTALLATION_TASK_NAME" with taskName
 
-			replace placeholder "KTLINT_ANDROID_OPT_ARG" with when (projectType) {
-				ProjectType.OTHER -> ""
-				ProjectType.ANDROID -> {
-					if (ktlintVersion >= SemVer(0, 49, 0)) {
-						"--code-style=android_studio"
-					} else {
-						"--android"
+			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" with run {
+				if (ktlintVersion >= SemVer(0, 49, 0)) {
+					when (codeStyle) {
+						is CodeStyle.Default -> ""
+						is CodeStyle.Specific -> "--code-style=${codeStyle.name}"
+					}
+				} else {
+					when (projectType) {
+						ProjectType.OTHER -> ""
+						ProjectType.ANDROID -> "--android"
 					}
 				}
 			}

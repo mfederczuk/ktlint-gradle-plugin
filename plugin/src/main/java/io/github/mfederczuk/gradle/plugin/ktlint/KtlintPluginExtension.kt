@@ -12,17 +12,62 @@ public interface KtlintPluginExtension {
 	 * The version of ktlint to use.
 	 *
 	 * This property doesn't have a default value.
-	 * A version must be explicitly set, otherwise attempting to run tasks will fail.
+	 * A version must be explicitly set, otherwise configuration will fail.
 	 */
 	public val version: Property<String>
 
 	// region ktlint CLI flags
+
+	// region --code-style=<codeStyle>
+
+	/**
+	 * Code style "`ktlint_official`".
+	 *
+	 * @see codeStyle
+	 */
+	@Suppress("PropertyName")
+	public val KtlintOfficial: String get() = "ktlint_official"
+
+	/**
+	 * Code style "`intellij_idea`".
+	 *
+	 * @see codeStyle
+	 */
+	@Suppress("PropertyName")
+	public val IntellijIdea: String get() = "intellij_idea"
+
+	/**
+	 * Code style "`android_studio`".
+	 *
+	 * @see codeStyle
+	 */
+	@Suppress("PropertyName")
+	public val AndroidStudio: String get() = "android_studio"
+
+	/**
+	 *
+	 * Adds the flag `--code-style=<codeStyle>` to the ktlint invocation.
+	 *
+	 * This property requires that the [version] property be set to `0.49.0` or above, otherwise configuration will
+	 * fail.
+	 *
+	 * The default is no explicit code style / whatever ktlint uses as the default.
+	 *
+	 * @see KtlintOfficial
+	 * @see IntellijIdea
+	 * @see AndroidStudio
+	 */
+	public val codeStyle: Property<String>
+
+	// endregion
 
 	/**
 	 * Whether or not this project is an android project.
 	 *
 	 * If set to `true`, prior to ktlint version `0.49.0`, then the flag `--android` will be added to the `ktlint`
 	 * invocation. For ktlint version `0.49.0` and onwards, the flag `--code-style=android_studio` is added instead.
+	 *
+	 * This and the [codeStyle] property are mutually exclusive; If both are set, the configuration will fail.
 	 *
 	 * The default value is `false`.
 	 */

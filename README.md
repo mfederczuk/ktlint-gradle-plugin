@@ -73,7 +73,7 @@ ktlint {
 	version.set("0.49.0") // set the version of ktlint
 
 	// the following configuration properties are optional
-	android.set(true) // add the --android flag to ktlint
+	codeStyle.set(AndroidStudio) // add the --code-style=android_studio flag to ktlint
 	limit.set(5) // add the --limit=5 flag to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // automatically installs the hook every time before a build is started
 }
@@ -105,7 +105,7 @@ ktlint {
 	version.set("0.49.0") // set the version of ktlint
 
 	// the following configuration properties are optional
-	android.set(true) // add the --android flag to ktlint
+	codeStyle.set(AndroidStudio) // add the --code-style=android_studio flag to ktlint
 	limit.set(5) // add the --limit=5 flag to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // automatically installs the hook every time before a build is started
 }
@@ -130,7 +130,7 @@ ktlint {
 	version = '0.49.0' // set the version of ktlint
 
 	// the following configuration properties are optional
-	android = true // add the --android flag to ktlint
+	codeStyle = 'android_studio' // add the --code-style=android_studio flag to ktlint
 	limit = 5 // add the --limit=5 flag to ktlint
 	installGitPreCommitHookBeforeBuild = true // automatically installs the hook every time before a build is started
 }
@@ -162,7 +162,7 @@ ktlint {
 	version = '0.49.0' // set the version of ktlint
 
 	// the following configuration properties are optional
-	android = true // add the --android flag to ktlint
+	codeStyle = 'android_studio' // add the --code-style=android_studio flag to ktlint
 	limit = 5 // add the --limit=5 flag to ktlint
 	installGitPreCommitHookBeforeBuild = true // automatically installs the hook every time before a build is started
 }
@@ -175,7 +175,7 @@ ktlint {
 ## To-Do List ##
 
 * [x] Configuration property to add the `--android` flag to `ktlint`
-* [ ] Configuration property to add the `--code-style=<codeStyle>` flag to `ktlint`
+* [x] Configuration property to add the `--code-style=<codeStyle>` flag to `ktlint`
 * [ ] Automatically detecting Android projects and adding the `--android` / `--code-style=android_studio` flag if that
       is the case
 * [ ] Configuration property to add the `--disabled_rules=<disabledRules>` flag to `ktlint`

@@ -152,8 +152,8 @@ readonly using_intellij_idea_terminal
 
 #region running ktlint
 
-ktlint_android_opt_arg=//KTLINT_ANDROID_OPT_ARG::quoted_string//
-readonly ktlint_android_opt_arg
+ktlint_code_style_opt_arg=//KTLINT_CODE_STYLE_OPT_ARG::quoted_string//
+readonly ktlint_code_style_opt_arg
 
 ktlint_relative_opt_arg='--relative'
 if $using_intellij_idea_terminal; then
@@ -173,7 +173,7 @@ printf 'Running ktlint (v%s)...\n' "$ktlint_version" >&2
 
 exc=0
 java -classpath "$ktlint_classpath" "$ktlint_main_class_name" \
-     $ktlint_android_opt_arg \
+     $ktlint_code_style_opt_arg \
      $ktlint_relative_opt_arg \
      $ktlint_limit_opt_arg \
      --patterns-from-stdin='' < "$staged_kotlin_filename_list_file_pathname" ||
