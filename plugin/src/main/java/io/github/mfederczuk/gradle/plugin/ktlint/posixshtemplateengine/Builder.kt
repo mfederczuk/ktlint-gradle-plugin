@@ -11,31 +11,38 @@ private class PosixShTemplateEngineBuilderImpl : PosixShTemplateEngineBuilder {
 
 	private val placeholderReplacerMap: MutableMap<String, PlaceholderReplacer> = HashMap()
 
-	private inner class ReplaceImpl(private val placeholderName: String) : PosixShTemplateEngineBuilder.Replace {
+	private inner class ReplaceImpl : PosixShTemplateEngineBuilder.Replace {
 
-		override fun with(value: String) {
-			this@PosixShTemplateEngineBuilderImpl.placeholderReplacerMap[this.placeholderName] =
-				PlaceholderReplacer { value }
+		private inner class PlaceholderImpl(private val name: String) : PosixShTemplateEngineBuilder.Replace.Placeholder {
+
+			override fun with(value: String) {
+				this@PlaceholderImpl.addReplacer { value }
+			}
+
+			override fun with(lazy: Lazy<String>) {
+				this@PlaceholderImpl.addReplacer(lazy::value)
+			}
+
+			private fun addReplacer(block: () -> String) {
+				this@PosixShTemplateEngineBuilderImpl.placeholderReplacerMap[this.name] = PlaceholderReplacer(block)
+			}
 		}
 
-		override fun with(lazy: Lazy<String>) {
-			this@PosixShTemplateEngineBuilderImpl.placeholderReplacerMap[this.placeholderName] =
-				PlaceholderReplacer(lazy::value)
+		@CheckReturnValue
+		override fun placeholder(name: String): PosixShTemplateEngineBuilder.Replace.Placeholder {
+			require(name.isNotEmpty()) {
+				"Placeholder name must not be empty"
+			}
+
+			require(PosixShTemplateEngine.isValidPlaceholderName(name)) {
+				"Invalid placeholder name \"$name\""
+			}
+
+			return PlaceholderImpl(name)
 		}
 	}
 
-	@CheckReturnValue
-	override fun replace(placeholderName: String): PosixShTemplateEngineBuilder.Replace {
-		require(placeholderName.isNotEmpty()) {
-			"Placeholder name must not be empty"
-		}
-
-		require(PosixShTemplateEngine.isValidPlaceholderName(placeholderName)) {
-			"Invalid placeholder name \"$placeholderName\""
-		}
-
-		return ReplaceImpl(placeholderName)
-	}
+	override val replace: PosixShTemplateEngineBuilder.Replace = ReplaceImpl()
 
 	@CheckReturnValue
 	fun build(): PosixShTemplateEngine {
@@ -46,12 +53,16 @@ private class PosixShTemplateEngineBuilderImpl : PosixShTemplateEngineBuilder {
 internal interface PosixShTemplateEngineBuilder {
 
 	interface Replace {
-		infix fun with(value: String)
-		infix fun with(lazy: Lazy<String>)
+		interface Placeholder {
+			infix fun with(value: String)
+			infix fun with(lazy: Lazy<String>)
+		}
+
+		@CheckReturnValue
+		infix fun placeholder(name: String): Placeholder
 	}
 
-	@CheckReturnValue
-	fun replace(placeholderName: String): Replace
+	val replace: Replace
 }
 
 @CheckReturnValue
