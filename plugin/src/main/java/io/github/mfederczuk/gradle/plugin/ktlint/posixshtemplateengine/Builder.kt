@@ -16,15 +16,7 @@ private class PosixShTemplateEngineBuilderImpl : PosixShTemplateEngineBuilder {
 		private inner class PlaceholderImpl(private val name: String) : PosixShTemplateEngineBuilder.Replace.Placeholder {
 
 			override fun with(value: String) {
-				this@PlaceholderImpl.addReplacer { value }
-			}
-
-			override fun with(lazy: Lazy<String>) {
-				this@PlaceholderImpl.addReplacer(lazy::value)
-			}
-
-			private fun addReplacer(block: () -> String) {
-				this@PosixShTemplateEngineBuilderImpl.placeholderReplacerMap[this.name] = PlaceholderReplacer(block)
+				this@PosixShTemplateEngineBuilderImpl.placeholderReplacerMap[this.name] = PlaceholderReplacer { value }
 			}
 		}
 
@@ -55,7 +47,6 @@ internal interface PosixShTemplateEngineBuilder {
 	interface Replace {
 		interface Placeholder {
 			infix fun with(value: String)
-			infix fun with(lazy: Lazy<String>)
 		}
 
 		@CheckReturnValue

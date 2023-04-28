@@ -89,9 +89,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		ktlintVersion: SemVer,
 	): String {
 		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
-			replace placeholder "GENERATED_DATETIME" with lazy {
-				ZonedDateTime.now().toString()
-			}
+			replace placeholder "GENERATED_DATETIME" with ZonedDateTime.now().toString()
 
 			replace placeholder "KTLINT_CLASSPATH" with run {
 				ktlintClasspathJarFiles.joinToString(separator = File.pathSeparator)
