@@ -53,6 +53,9 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	abstract val errorLimit: Property<ErrorLimit>
 
 	@get:Input
+	abstract val experimentalRulesEnabled: Property<Boolean>
+
+	@get:Input
 	abstract val ktlintVersion: Property<SemVer>
 
 	@TaskAction
@@ -62,6 +65,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		val codeStyle: CodeStyle = this.codeStyle.get()
 		val projectType: ProjectType = this.projectType.get()
 		val errorLimit: ErrorLimit = this.errorLimit.get()
+		val experimentalRulesEnabled: Boolean = this.experimentalRulesEnabled.get()
 		val ktlintVersion: SemVer = this.ktlintVersion.get()
 
 		val hookScript: String = this
@@ -71,6 +75,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				codeStyle,
 				projectType,
 				errorLimit,
+				experimentalRulesEnabled,
 				ktlintVersion,
 			)
 
@@ -91,6 +96,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		codeStyle: CodeStyle,
 		projectType: ProjectType,
 		errorLimit: ErrorLimit,
+		experimentalRulesEnabled: Boolean,
 		ktlintVersion: SemVer,
 	): String {
 		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
@@ -123,6 +129,14 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 			replace placeholder "KTLINT_LIMIT_OPT_ARG" with when (errorLimit) {
 				is ErrorLimit.None -> ""
 				is ErrorLimit.Max -> "--limit=${errorLimit.n}"
+			}
+
+			replace placeholder "KTLINT_EXPERIMENTAL_OPT_ARG" with run {
+				if (experimentalRulesEnabled) {
+					"--experimental"
+				} else {
+					""
+				}
 			}
 
 			replace placeholder "KTLINT_VERSION" with ktlintVersion.toString()

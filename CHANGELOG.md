@@ -11,6 +11,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [**Keep a Changelog v1.0.0**](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased ##
+
+### Added ###
+
+* New `experimentalRulesEnabled` configuration property for adding the `--experimental` flag to the ktlint invocation
+  * Convenience function `enableExperimentalRules()`
+
 ## [v0.1.0-indev04] - 2023-05-04 ##
 
 [v0.1.0-indev04]: <https://github.com/mfederczuk/ktlint-github-gradle-plugin/releases/tag/v0.1.0-indev04>
