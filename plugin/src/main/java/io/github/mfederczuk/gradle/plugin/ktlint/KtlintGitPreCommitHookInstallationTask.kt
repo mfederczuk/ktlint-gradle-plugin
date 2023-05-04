@@ -18,7 +18,6 @@ import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.time.ZonedDateTime
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import java.util.jar.Manifest
@@ -89,7 +88,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		ktlintVersion: SemVer,
 	): String {
 		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
-			replace placeholder "GENERATED_DATETIME" with ZonedDateTime.now().toString()
+			replace placeholder "GENERATED_DATETIME" with generatedDateTime
 
 			replace placeholder "KTLINT_CLASSPATH" with run {
 				ktlintClasspathJarFiles.joinToString(separator = File.pathSeparator)

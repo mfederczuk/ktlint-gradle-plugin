@@ -11,12 +11,21 @@ private class PosixShTemplateEngineBuilderImpl : PosixShTemplateEngineBuilder {
 
 	private val placeholderReplacerMap: MutableMap<String, PlaceholderReplacer> = HashMap()
 
+	private object GeneratedDateTimeImpl : PosixShTemplateEngineBuilder.GeneratedDateTime
+
 	private inner class ReplaceImpl : PosixShTemplateEngineBuilder.Replace {
 
 		private inner class PlaceholderImpl(private val name: String) : PosixShTemplateEngineBuilder.Replace.Placeholder {
 
 			override fun with(value: String) {
 				this@PosixShTemplateEngineBuilderImpl.placeholderReplacerMap[this.name] = PlaceholderReplacer { value }
+			}
+
+			override fun with(generatedDateTime: PosixShTemplateEngineBuilder.GeneratedDateTime) {
+				this@PosixShTemplateEngineBuilderImpl.placeholderReplacerMap[this.name] =
+					PlaceholderReplacer { context: PlaceholderReplacer.Context ->
+						context.generatedDateTime.toString()
+					}
 			}
 		}
 
@@ -34,6 +43,8 @@ private class PosixShTemplateEngineBuilderImpl : PosixShTemplateEngineBuilder {
 		}
 	}
 
+	override val generatedDateTime: PosixShTemplateEngineBuilder.GeneratedDateTime = GeneratedDateTimeImpl
+
 	override val replace: PosixShTemplateEngineBuilder.Replace = ReplaceImpl()
 
 	@CheckReturnValue
@@ -44,14 +55,20 @@ private class PosixShTemplateEngineBuilderImpl : PosixShTemplateEngineBuilder {
 
 internal interface PosixShTemplateEngineBuilder {
 
+	interface GeneratedDateTime
+
 	interface Replace {
+
 		interface Placeholder {
 			infix fun with(value: String)
+			infix fun with(generatedDateTime: GeneratedDateTime)
 		}
 
 		@CheckReturnValue
 		infix fun placeholder(name: String): Placeholder
 	}
+
+	val generatedDateTime: GeneratedDateTime
 
 	val replace: Replace
 }
