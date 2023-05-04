@@ -183,7 +183,7 @@ ktlint {
 * [ ] Configuration property to add the `--reporter=<reporterConfiguration>` flag to `ktlint`
 * [ ] Configuration property to add the `--ruleset=<rulesetJarPaths>` flag to `ktlint`
 * [ ] Configuration property to add the `--editorconfig=<editorConfigPath>` flag to `ktlint`
-* [ ] Configuration property to add the `--experimental` flag to `ktlint`
+* [x] Configuration property to add the `--experimental` flag to `ktlint`
 * [ ] Configuration property to add the `--baseline` flag to `ktlint`
 * [ ] Configuration property to add the `--log-level=<minLogLevel>` flag to `ktlint`
 * [ ] Gradle task to run ktlint manually

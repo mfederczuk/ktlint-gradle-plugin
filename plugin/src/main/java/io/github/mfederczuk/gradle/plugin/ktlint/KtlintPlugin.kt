@@ -71,6 +71,7 @@ public class KtlintPlugin : Plugin<Project> {
 			codeStyleProvider = extension.codeStyleAsDistinctType,
 			projectTypeProvider,
 			errorLimitProvider,
+			experimentalRulesEnabledProvider = extension.experimentalRulesEnabled,
 			ktlintVersionProvider,
 		)
 
@@ -85,6 +86,7 @@ public class KtlintPlugin : Plugin<Project> {
 
 		extension.installGitPreCommitHookBeforeBuild.convention(false)
 		extension.android.convention(false)
+		extension.experimentalRulesEnabled.convention(false)
 
 		return extension
 	}
@@ -115,6 +117,7 @@ public class KtlintPlugin : Plugin<Project> {
 		codeStyleProvider: Provider<CodeStyle>,
 		projectTypeProvider: Provider<ProjectType>,
 		errorLimitProvider: Provider<ErrorLimit>,
+		experimentalRulesEnabledProvider: Provider<Boolean>,
 		ktlintVersionProvider: Provider<SemVer>,
 	) {
 		project.tasks.register<KtlintGitPreCommitHookInstallationTask>(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
@@ -126,6 +129,7 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.codeStyle.set(codeStyleProvider)
 			this@register.projectType.set(projectTypeProvider)
 			this@register.errorLimit.set(errorLimitProvider)
+			this@register.experimentalRulesEnabled.set(experimentalRulesEnabledProvider)
 			this@register.ktlintVersion.set(ktlintVersionProvider)
 		}
 	}
