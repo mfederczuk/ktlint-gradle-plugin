@@ -18,7 +18,6 @@ import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.time.ZonedDateTime
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import java.util.jar.Manifest
@@ -89,17 +88,19 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		ktlintVersion: SemVer,
 	): String {
 		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
-			replace("GENERATED_DATETIME") with lazy {
-				ZonedDateTime.now().toString()
+			replace placeholder "GENERATED_DATETIME" with generatedDateTime
+
+			replace placeholder "KTLINT_CLASSPATH" with run {
+				ktlintClasspathJarFiles.joinToString(separator = File.pathSeparator)
 			}
 
-			replace("KTLINT_CLASSPATH") with ktlintClasspathJarFiles.joinToString(separator = File.pathSeparator)
+			replace placeholder "KTLINT_MAIN_CLASS_NAME" with run {
+				ktlintClasspathJarFiles.first().extractJarFileMainClassName()
+			}
 
-			replace("KTLINT_MAIN_CLASS_NAME") with ktlintClasspathJarFiles.first().extractJarFileMainClassName()
+			replace placeholder "HOOK_INSTALLATION_TASK_NAME" with taskName
 
-			replace("HOOK_INSTALLATION_TASK_NAME") with taskName
-
-			replace("KTLINT_ANDROID_OPT_ARG") with when (projectType) {
+			replace placeholder "KTLINT_ANDROID_OPT_ARG" with when (projectType) {
 				ProjectType.OTHER -> ""
 				ProjectType.ANDROID -> {
 					if (ktlintVersion >= SemVer(0, 49, 0)) {
@@ -110,12 +111,12 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				}
 			}
 
-			replace("KTLINT_LIMIT_OPT_ARG") with when (errorLimit) {
+			replace placeholder "KTLINT_LIMIT_OPT_ARG" with when (errorLimit) {
 				is ErrorLimit.None -> ""
 				is ErrorLimit.Max -> "--limit=${errorLimit.n}"
 			}
 
-			replace("KTLINT_VERSION") with ktlintVersion.toString()
+			replace placeholder "KTLINT_VERSION" with ktlintVersion.toString()
 		}
 
 		val hookScriptTemplate: String = this.loadHookScriptTemplate()

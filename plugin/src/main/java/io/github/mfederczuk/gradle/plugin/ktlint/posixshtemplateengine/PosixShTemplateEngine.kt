@@ -5,13 +5,18 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine
 
+import java.time.ZonedDateTime
 import javax.annotation.CheckReturnValue
 
 @FunctionalInterface
 internal fun interface PlaceholderReplacer {
 
+	data class Context(
+		val generatedDateTime: ZonedDateTime,
+	)
+
 	@CheckReturnValue
-	fun get(): String
+	fun get(context: Context): String
 }
 
 internal class PosixShTemplateEngine(
@@ -47,18 +52,20 @@ internal class PosixShTemplateEngine(
 
 	@CheckReturnValue
 	fun processString(templateString: String): String {
+		val generatedDateTime: ZonedDateTime = ZonedDateTime.now()
+
 		return templateString.lineSequence()
 			.map { line: String ->
 				line
 					.replace(TEMPLATE_PATTERN) { matchResult: MatchResult ->
-						this.replaceMatch(line, matchResult)
+						this.replaceMatch(generatedDateTime, line, matchResult)
 					}
 			}
 			.joinToString(separator = "\n")
 	}
 
 	@CheckReturnValue
-	private fun replaceMatch(line: String, matchResult: MatchResult): String {
+	private fun replaceMatch(generatedDateTime: ZonedDateTime, line: String, matchResult: MatchResult): String {
 		val placeholderName: String = matchResult.groupValues[1]
 
 		check(placeholderName.isNotEmpty()) {
@@ -83,7 +90,12 @@ internal class PosixShTemplateEngine(
 			"No placeholder replacer registered for placeholder with name \"$placeholderName\""
 		}
 
-		val value: String = placeholderReplacer.get()
+		val context = PlaceholderReplacer
+			.Context(
+				generatedDateTime,
+			)
+
+		val value: String = placeholderReplacer.get(context)
 
 		return when (placeholderType) {
 			PlaceholderType.QUOTED_STRING -> value.quoteForPosixSh()
