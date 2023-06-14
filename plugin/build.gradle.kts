@@ -14,7 +14,7 @@ repositories {
 }
 
 group = "io.github.mfederczuk"
-version = "0.1.0-indev04"
+version = "0.1.0-indev05"
 
 val javaCompatibilityVersion: JavaVersion = JavaVersion.VERSION_11
 
