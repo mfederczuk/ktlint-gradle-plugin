@@ -18,6 +18,10 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 * New `experimentalRulesEnabled` configuration property for adding the `--experimental` flag to the ktlint invocation
   * Convenience function `enableExperimentalRules()`
 
+### Fixed ###
+
+* The Java compatibility is now explicitly set to `11` (before it was implicitly `17`)
+
 ## [v0.1.0-indev04] - 2023-05-04 ##
 
 [v0.1.0-indev04]: <https://github.com/mfederczuk/ktlint-github-gradle-plugin/releases/tag/v0.1.0-indev04>
