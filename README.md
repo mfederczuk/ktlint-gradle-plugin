@@ -75,6 +75,7 @@ ktlint {
 	// the following configuration properties are optional
 	codeStyle.set(AndroidStudio) // add the --code-style=android_studio flag to ktlint
 	limit.set(5) // add the --limit=5 flag to ktlint
+	enableExperimentalRules() // add the --experimental flag to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // automatically installs the hook every time before a build is started
 }
 ```
@@ -107,6 +108,7 @@ ktlint {
 	// the following configuration properties are optional
 	codeStyle.set(AndroidStudio) // add the --code-style=android_studio flag to ktlint
 	limit.set(5) // add the --limit=5 flag to ktlint
+	enableExperimentalRules() // add the --experimental flag to ktlint
 	installGitPreCommitHookBeforeBuild.set(true) // automatically installs the hook every time before a build is started
 }
 ```
@@ -132,6 +134,7 @@ ktlint {
 	// the following configuration properties are optional
 	codeStyle = 'android_studio' // add the --code-style=android_studio flag to ktlint
 	limit = 5 // add the --limit=5 flag to ktlint
+	enableExperimentalRules() // add the --experimental flag to ktlint
 	installGitPreCommitHookBeforeBuild = true // automatically installs the hook every time before a build is started
 }
 ```
@@ -164,6 +167,7 @@ ktlint {
 	// the following configuration properties are optional
 	codeStyle = 'android_studio' // add the --code-style=android_studio flag to ktlint
 	limit = 5 // add the --limit=5 flag to ktlint
+	enableExperimentalRules() // add the --experimental flag to ktlint
 	installGitPreCommitHookBeforeBuild = true // automatically installs the hook every time before a build is started
 }
 ```
