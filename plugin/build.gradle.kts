@@ -16,8 +16,17 @@ repositories {
 group = "io.github.mfederczuk"
 version = "0.1.0-indev04"
 
+val javaCompatibilityVersion: JavaVersion = JavaVersion.VERSION_11
+
+java {
+	sourceCompatibility = javaCompatibilityVersion
+	targetCompatibility = javaCompatibilityVersion
+	toolchain.languageVersion.set(JavaLanguageVersion.of(javaCompatibilityVersion.majorVersion))
+}
+
 kotlin {
 	explicitApi()
+	jvmToolchain(javaCompatibilityVersion.majorVersion.toInt())
 }
 
 @Suppress("SpellCheckingInspection")
