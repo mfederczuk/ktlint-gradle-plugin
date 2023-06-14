@@ -14,6 +14,7 @@ ktlint {
 	version.set("0.49.1")
 	// codeStyle.set(AndroidStudio)
 	// limit.set(5)
+	// enableExperimentalRules()
 	installGitPreCommitHookBeforeBuild.set(true)
 }
 
