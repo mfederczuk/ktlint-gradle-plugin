@@ -70,7 +70,7 @@ repositories {
 }
 
 ktlint {
-	version.set("0.49.0") // set the version of ktlint
+	version.set("0.49.1") // set the version of ktlint
 
 	// the following configuration properties are optional
 	codeStyle.set(AndroidStudio) // add the --code-style=android_studio flag to ktlint
@@ -102,7 +102,7 @@ repositories {
 }
 
 ktlint {
-	version.set("0.49.0") // set the version of ktlint
+	version.set("0.49.1") // set the version of ktlint
 
 	// the following configuration properties are optional
 	codeStyle.set(AndroidStudio) // add the --code-style=android_studio flag to ktlint
@@ -127,7 +127,7 @@ repositories {
 }
 
 ktlint {
-	version = '0.49.0' // set the version of ktlint
+	version = '0.49.1' // set the version of ktlint
 
 	// the following configuration properties are optional
 	codeStyle = 'android_studio' // add the --code-style=android_studio flag to ktlint
@@ -159,7 +159,7 @@ repositories {
 }
 
 ktlint {
-	version = '0.49.0' // set the version of ktlint
+	version = '0.49.1' // set the version of ktlint
 
 	// the following configuration properties are optional
 	codeStyle = 'android_studio' // add the --code-style=android_studio flag to ktlint
