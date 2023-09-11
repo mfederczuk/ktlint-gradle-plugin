@@ -31,7 +31,10 @@ public class KtlintPlugin : Plugin<Project> {
 		// flag --patterns-from-stdin (which is required for the hook) was introduced in 0.48.0
 		val KTLINT_MIN_SUPPORTED_VERSION: SemVer = SemVer(0, 48, 0)
 
-		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION: String = "com.pinterest:ktlint"
+		val KTLINT_NEW_MAVEN_COORDS_VERSION: SemVer = SemVer(1, 0, 0)
+
+		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_OLD: String = "com.pinterest:ktlint"
+		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_NEW: String = "com.pinterest.ktlint:ktlint-cli"
 
 		const val TASK_GROUP_NAME: String = "ktlint"
 		const val KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME: String = "installKtlintGitPreCommitHook"
@@ -93,7 +96,13 @@ public class KtlintPlugin : Plugin<Project> {
 
 	@CheckReturnValue
 	private fun resolveKtlintClasspathJarFilesFromVersion(project: Project, ktlintVersion: SemVer): Set<File> {
-		val ktlintDependencyNotation = "$KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION:$ktlintVersion"
+		val ktlintDependencyNotationWithoutVersion: String =
+			if (ktlintVersion >= KTLINT_NEW_MAVEN_COORDS_VERSION) {
+				KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_NEW
+			} else {
+				KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_OLD
+			}
+		val ktlintDependencyNotation = "$ktlintDependencyNotationWithoutVersion:$ktlintVersion"
 		val ktlintDependency: Dependency = project.dependencies.create(ktlintDependencyNotation)
 
 		val configuration: Configuration = project.configurations.detachedConfiguration(ktlintDependency)
