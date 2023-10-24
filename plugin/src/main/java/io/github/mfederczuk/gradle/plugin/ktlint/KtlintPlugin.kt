@@ -19,9 +19,6 @@ import net.swiftzer.semver.SemVer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.plugins.ExtensionContainer
@@ -41,11 +38,6 @@ public class KtlintPlugin : Plugin<Project> {
 	private companion object {
 		const val EXTENSION_NAME: String = "ktlint"
 
-		val KTLINT_NEW_MAVEN_COORDS_VERSION: SemVer = SemVer(1, 0, 0)
-
-		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_OLD: String = "com.pinterest:ktlint"
-		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_NEW: String = "com.pinterest.ktlint:ktlint-cli"
-
 		const val TASK_GROUP_NAME: String = "ktlint"
 		const val KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME: String = "installKtlintGitPreCommitHook"
 	}
@@ -59,7 +51,11 @@ public class KtlintPlugin : Plugin<Project> {
 
 		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = configurationProvider
 			.map<Iterable<File>> { configuration: PluginConfiguration ->
-				this.resolveKtlintClasspathJarFilesFromVersion(project, configuration.ktlintVersion)
+				resolveKtlintClasspathJarFilesFromVersion(
+					configuration.ktlintVersion,
+					dependencyHandler = project.dependencies,
+					configurationContainer = project.configurations,
+				)
 			}
 
 		val gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask> =
@@ -97,35 +93,6 @@ public class KtlintPlugin : Plugin<Project> {
 		extension.experimental.convention(false)
 
 		return extension
-	}
-
-	@CheckReturnValue
-	private fun resolveKtlintClasspathJarFilesFromVersion(
-		project: Project,
-		ktlintVersion: SemVer,
-	): Set<File> {
-		val ktlintDependencyNotationWithoutVersion: String =
-			if (ktlintVersion >= KTLINT_NEW_MAVEN_COORDS_VERSION) {
-				KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_NEW
-			} else {
-				KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_OLD
-			}
-		val ktlintDependencyNotation = "$ktlintDependencyNotationWithoutVersion:$ktlintVersion"
-		val ktlintDependency: Dependency = project.dependencies.create(ktlintDependencyNotation)
-
-		val configuration: Configuration = project.configurations.detachedConfiguration(ktlintDependency)
-		try {
-			return configuration.resolve()
-		} catch (_: ResolveException) {
-			// don't add this exception as a cause; Gradle won't show our message but instead just the cause message
-
-			val msg: String =
-				"Could not resolve the dependency \"$ktlintDependencyNotation\".\n" +
-					"Either the requested version ($ktlintVersion) does not exist or " +
-					"Maven Central is missing from the dependency repositories.\n" +
-					"If it's neither of those causes, then ...".internalErrorMsg
-			error(msg)
-		}
 	}
 
 	@CheckReturnValue
