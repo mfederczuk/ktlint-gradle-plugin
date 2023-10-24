@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0
 
 plugins {
-	kotlin("jvm") version "1.8.20"
+	kotlin("jvm") version "1.9.10"
 	application
 	id("io.github.mfederczuk.ktlint") version "0.1.0-indev06"
 }
@@ -11,11 +11,11 @@ repositories {
 }
 
 ktlint {
-	version.set("1.0.0")
-	// codeStyle.set(AndroidStudio)
-	// limit.set(5)
+	version = "1.0.1"
+	// codeStyle = AndroidStudio
+	// limit = 5
 	// enableExperimentalRules()
-	installGitPreCommitHookBeforeBuild.set(true)
+	installGitPreCommitHookBeforeBuild = true
 }
 
-application.mainClass.set("io.github.mfederczuk.gradle.plugin.ktlint.demo.Main")
+application.mainClass = "io.github.mfederczuk.gradle.plugin.ktlint.demo.Main"
