@@ -5,13 +5,11 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
-import io.github.mfederczuk.gradle.plugin.ktlint.utils.relativeToCwd
-import org.gradle.api.file.ProjectLayout
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.getCurrentWorkingDirectoryPath
 import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.InputStream
-import java.nio.charset.Charset
+import java.nio.file.Path
 import javax.annotation.CheckReturnValue
 import javax.inject.Inject
 
@@ -20,21 +18,15 @@ internal abstract class GitService {
 	@get:Inject
 	abstract val execOperations: ExecOperations
 
-	@get:Inject
-	abstract val projectLayout: ProjectLayout
-
 	@CheckReturnValue
-	fun determinePreCommitHookFilePath(): File {
-		return this.resolveGirDirPath(path = "hooks/pre-commit")
-	}
-
-	@CheckReturnValue
-	private fun resolveGirDirPath(path: String): File {
+	fun determinePreCommitHookFilePath(): Path {
 		// this size was mostly chosen arbitrarily.
 		// we need at least 22 bytes because the most expected value will be ".git/hooks/pre-commit\n".
 		// absolute paths will probably where around 64 bytes
 		// 128 bytes should cover most cases
 		val stdout = ByteArrayOutputStream(128)
+
+		val currentWorkingDirectoryPath: Path = getCurrentWorkingDirectoryPath()
 
 		this.execOperations
 			.exec {
@@ -53,19 +45,22 @@ internal abstract class GitService {
 				// return the correct pathname to the requested file.
 				// What an absolute luxury.
 
-				commandLine = listOf("git", "--no-pager", "rev-parse", "--git-path", path)
-				standardInput = InputStream.nullInputStream()
-				standardOutput = stdout
-				errorOutput = System.err
+				this@exec.workingDir = currentWorkingDirectoryPath.toFile()
+
+				this@exec.commandLine = listOf("git", "--no-pager", "rev-parse", "--git-path", "hooks/pre-commit")
+
+				this@exec.standardInput = InputStream.nullInputStream()
+				this@exec.standardOutput = stdout
+				this@exec.errorOutput = System.err
 			}
 			.assertNormalExitValue()
 			.rethrowFailure()
 
 		// TODO: does Windows need UTF-16 here?
-		val gitPreCommitHookFilePath: String = stdout.toString(Charset.forName("UTF-8"))
+		val relativeHookFilePath: Path = stdout.toString(Charsets.UTF_8)
 			.trimEnd() // remove trailing newlines
+			.let(Path::of)
 
-		return this.projectLayout.projectDirectory.asFile.resolve(gitPreCommitHookFilePath)
-			.relativeToCwd()
+		return currentWorkingDirectoryPath.resolve(relativeHookFilePath)
 	}
 }

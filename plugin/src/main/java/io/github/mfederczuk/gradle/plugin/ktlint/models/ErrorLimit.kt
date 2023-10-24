@@ -4,9 +4,15 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint.models
 
-internal sealed class ErrorLimit {
+import java.io.Serializable
 
-	object None : ErrorLimit()
+internal sealed class ErrorLimit : Serializable {
+
+	object None : ErrorLimit() {
+		private fun readResolve(): Any {
+			return None
+		}
+	}
 
 	data class Max(val n: UInt) : ErrorLimit()
 }
