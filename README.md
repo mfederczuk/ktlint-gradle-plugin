@@ -28,14 +28,14 @@ The advantages over using ktlint's built-in `installGitPreCommitHook` command ar
 &#8203;
 
 This plugin's custom hook script was greatly inspired by [JLLeitschuh/ktlint-gradle].  
-The main advantages/fixes of this plugin's hook are:
+The main advantages/fixes of this plugin's hook script are:
 
 * The script doesn't execute Gradle, it executes the `ktlint` JAR directly, which (depending on the project's size) can
   potentially shave off multiple seconds of the hook's execution time
 
 * The script handles stashing binary files correctly
 
-* The script supports the config `diff.noprefix = true`
+* The script supports the Git config `diff.noprefix = true`
 
 &#8203;
 
@@ -83,7 +83,7 @@ ktlint {
 </details>
 
 <details>
-<summary>Kotlin Script & legacy plugin application</summary>
+<summary>Kotlin script & legacy plugin application</summary>
 
 ```kotlin
 buildscript {
@@ -178,16 +178,10 @@ ktlint {
 
 ## To-Do List ##
 
-* [x] Configuration property to add the `--android` flag to `ktlint`
-* [x] Configuration property to add the `--code-style=<codeStyle>` flag to `ktlint`
-* [ ] Automatically detecting Android projects and adding the `--android` / `--code-style=android_studio` flag if that
-      is the case
 * [ ] Configuration property to add the `--disabled_rules=<disabledRules>` flag to `ktlint`
-* [x] Configuration property to add the `--limit=<limit>` flag to `ktlint`
 * [ ] Configuration property to add the `--reporter=<reporterConfiguration>` flag to `ktlint`
 * [ ] Configuration property to add the `--ruleset=<rulesetJarPaths>` flag to `ktlint`
 * [ ] Configuration property to add the `--editorconfig=<editorConfigPath>` flag to `ktlint`
-* [x] Configuration property to add the `--experimental` flag to `ktlint`
 * [ ] Configuration property to add the `--baseline` flag to `ktlint`
 * [ ] Configuration property to add the `--log-level=<minLogLevel>` flag to `ktlint`
 * [ ] Gradle task to run ktlint manually

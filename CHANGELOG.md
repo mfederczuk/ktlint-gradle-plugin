@@ -21,6 +21,8 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 ### Changed ###
 
 * The minimum supported version of ktlint is now **`0.50.0`**
+* The configuration property `experimentalRulesEnabled` was renamed to just `experimental`
+  (to mirror the name of the actual ktlint flag `--experimental`)
 
 ### Removed ###
 

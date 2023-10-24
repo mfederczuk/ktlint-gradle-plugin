@@ -3,28 +3,25 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-@file:Suppress("RemoveExplicitTypeArguments")
-
 package io.github.mfederczuk.gradle.plugin.ktlint
 
 import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
 import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.models.PluginConfiguration
+import io.github.mfederczuk.gradle.plugin.ktlint.models.toConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.GitPreCommitHookPathRefreshTask
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintGitPreCommitHookInstallationTask
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.getCurrentWorkingDirectoryPath
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
-import io.github.mfederczuk.gradle.plugin.ktlint.utils.isValid
 import net.swiftzer.semver.SemVer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findByType
@@ -39,36 +36,25 @@ public class KtlintPlugin : Plugin<Project> {
 	private companion object {
 		const val EXTENSION_NAME: String = "ktlint"
 
-		val KTLINT_MIN_SUPPORTED_VERSION: SemVer = SemVer(0, 50, 0)
-
-		val KTLINT_NEW_MAVEN_COORDS_VERSION: SemVer = SemVer(1, 0, 0)
-
-		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_OLD: String = "com.pinterest:ktlint"
-		const val KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_NEW: String = "com.pinterest.ktlint:ktlint-cli"
-
 		const val TASK_GROUP_NAME: String = "ktlint"
 		const val KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME: String = "installKtlintGitPreCommitHook"
 	}
 
 	override fun apply(project: Project) {
-		val extension: KtlintPluginExtension = this.createExtension(extensionContainer = project.extensions)
+		val configurationProvider: Provider<PluginConfiguration> = this
+			.createConfiguration(
+				extensionContainer = project.extensions,
+				providerFactory = project.providers,
+			)
 
-		val ktlintVersionProvider: Provider<SemVer> = extension.checkedKtlintVersion
-
-		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = ktlintVersionProvider
-			.map<Iterable<File>> { version: SemVer ->
-				this.resolveKtlintClasspathJarFilesFromVersion(project, version)
+		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = configurationProvider
+			.map { configuration: PluginConfiguration ->
+				resolveKtlintClasspathJarFilesFromVersion(
+					configuration.ktlintVersion,
+					dependencyHandler = project.dependencies,
+					configurationContainer = project.configurations,
+				)
 			}
-
-		val errorLimitProvider: Provider<ErrorLimit> = extension.limit
-			.map<ErrorLimit> { n: Int ->
-				check(n >= 0) {
-					"Limit must be set to a positive integer"
-				}
-
-				ErrorLimit.Max(n.toUInt())
-			}
-			.orElse(ErrorLimit.None)
 
 		val gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask> =
 			this.registerGitPreCommitHookInfoRefreshTask(project)
@@ -76,10 +62,10 @@ public class KtlintPlugin : Plugin<Project> {
 		this.registerGitPreCommitHookInstallationTask(
 			project,
 			ktlintClasspathJarFilesProvider,
-			codeStyleProvider = extension.codeStyleAsDistinctType,
-			errorLimitProvider,
-			experimentalRulesEnabledProvider = extension.experimentalRulesEnabled,
-			ktlintVersionProvider,
+			codeStyleProvider = configurationProvider.map(PluginConfiguration::codeStyle),
+			errorLimitProvider = configurationProvider.map(PluginConfiguration::errorLimit),
+			experimentalRulesEnabledProvider = configurationProvider.map(PluginConfiguration::experimentalRulesEnabled),
+			ktlintVersionProvider = configurationProvider.map(PluginConfiguration::ktlintVersion),
 			gitPreCommitHookPathRefreshTaskProvider,
 		)
 
@@ -89,42 +75,22 @@ public class KtlintPlugin : Plugin<Project> {
 	}
 
 	@CheckReturnValue
-	private fun createExtension(extensionContainer: ExtensionContainer): KtlintPluginExtension {
-		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
-
-		extension.installGitPreCommitHookBeforeBuild.convention(false)
-		extension.experimentalRulesEnabled.convention(false)
-
-		return extension
+	private fun createConfiguration(
+		extensionContainer: ExtensionContainer,
+		providerFactory: ProviderFactory,
+	): Provider<PluginConfiguration> {
+		return this.createExtension(extensionContainer)
+			.toConfiguration(providerFactory)
 	}
 
 	@CheckReturnValue
-	private fun resolveKtlintClasspathJarFilesFromVersion(
-		project: Project,
-		ktlintVersion: SemVer,
-	): Set<File> {
-		val ktlintDependencyNotationWithoutVersion: String =
-			if (ktlintVersion >= KTLINT_NEW_MAVEN_COORDS_VERSION) {
-				KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_NEW
-			} else {
-				KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_OLD
-			}
-		val ktlintDependencyNotation = "$ktlintDependencyNotationWithoutVersion:$ktlintVersion"
-		val ktlintDependency: Dependency = project.dependencies.create(ktlintDependencyNotation)
+	private fun createExtension(extensionContainer: ExtensionContainer): KtlintPluginExtension {
+		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
-		val configuration: Configuration = project.configurations.detachedConfiguration(ktlintDependency)
-		try {
-			return configuration.resolve()
-		} catch (_: ResolveException) {
-			// don't add this exception as a cause; Gradle won't show our message but instead just the cause message
+		extension.experimental.convention(false)
+		extension.installGitPreCommitHookBeforeBuild.convention(false)
 
-			val msg: String =
-				"Could not resolve the dependency \"$ktlintDependencyNotation\".\n" +
-					"Either the requested version ($ktlintVersion) does not exist or " +
-					"Maven Central is missing from the dependency repositories.\n" +
-					"If it's neither of those causes, then ...".internalErrorMsg
-			error(msg)
-		}
+		return extension
 	}
 
 	@CheckReturnValue
@@ -216,45 +182,6 @@ public class KtlintPlugin : Plugin<Project> {
 
 		targetTask.dependsOn(gitPreCommitHookInstallationTask)
 	}
-
-	// endregion
-
-	// region extension extensions... yeah
-
-	private val KtlintPluginExtension.checkedKtlintVersion: Provider<SemVer>
-		get() {
-			return this@checkedKtlintVersion.version
-				.map<SemVer> { versionString: String ->
-					val requestedKtlintVersion: SemVer? = SemVer.parseOrNull(versionString)
-
-					if ((requestedKtlintVersion == null) && SemVer.isValid(versionString.removePrefix(prefix = "v"))) {
-						val msg: String =
-							"String \"$versionString\" is not a valid semantic version.\n" +
-								"Remove the leading 'v' character and " +
-								"use \"${versionString.removePrefix(prefix = "v")}\" instead"
-						error(msg)
-					}
-
-					checkNotNull(requestedKtlintVersion) {
-						"String \"$versionString\" is not not a valid semantic version.\n" +
-							"Ensure that the version was correctly copied from https://github.com/pinterest/ktlint/releases"
-					}
-
-					check(requestedKtlintVersion >= KTLINT_MIN_SUPPORTED_VERSION) {
-						"Configured ktlint version ($requestedKtlintVersion) is lower than " +
-							"minimum supported ktlint version $KTLINT_MIN_SUPPORTED_VERSION"
-					}
-
-					requestedKtlintVersion
-				}
-		}
-
-	private val KtlintPluginExtension.codeStyleAsDistinctType: Provider<CodeStyle>
-		get() {
-			return this@codeStyleAsDistinctType.codeStyle
-				.map<CodeStyle>(CodeStyle::Specific)
-				.orElse(CodeStyle.Default)
-		}
 
 	// endregion
 }
