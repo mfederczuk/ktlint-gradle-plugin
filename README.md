@@ -52,7 +52,7 @@ The main advantages/fixes of this plugin's hook are:
 
 ## Configuration ##
 
-The minimum supported ktlint version is `0.48.0`.
+The minimum supported ktlint version is `0.50.0`.
 
 <!-- markdownlint-disable no-inline-html -->
 
