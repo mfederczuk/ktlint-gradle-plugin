@@ -3,7 +3,7 @@
 plugins {
 	kotlin("jvm") version "1.9.10"
 	application
-	id("io.github.mfederczuk.ktlint") version "0.1.0-indev06"
+	id("io.github.mfederczuk.ktlint") version "0.1.0-indev07"
 }
 
 repositories {
