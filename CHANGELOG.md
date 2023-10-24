@@ -16,6 +16,7 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 ### Added ###
 
 * The task `installKtlintGitPreCommitHook` is now cacheable
+* The option `--color` is added to the ktlint invocation (can be disabled with [`NO_COLOR`](https://no-color.org/))
 
 ## [v0.1.0-indev06] - 2023-09-11 ##
 
