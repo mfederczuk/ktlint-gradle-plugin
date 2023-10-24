@@ -10,9 +10,9 @@ public interface KtlintPluginExtension {
 
 	/**
 	 * The version of ktlint to use.
+	 * This string must be a valid [semantic version](https://semver.org/spec/v2.0.0.html).
 	 *
-	 * This property doesn't have a default value.
-	 * A version must be explicitly set, otherwise configuration will fail.
+	 * This property doesn't have a default value — a version must be explicitly set.
 	 */
 	public val version: Property<String>
 
@@ -21,7 +21,7 @@ public interface KtlintPluginExtension {
 	// region --code-style=<codeStyle>
 
 	/**
-	 * Code style "`ktlint_official`".
+	 * Constant for the code style "`ktlint_official`".
 	 *
 	 * @see codeStyle
 	 */
@@ -29,7 +29,7 @@ public interface KtlintPluginExtension {
 	public val KtlintOfficial: String get() = "ktlint_official"
 
 	/**
-	 * Code style "`intellij_idea`".
+	 * Constant for the code style "`intellij_idea`".
 	 *
 	 * @see codeStyle
 	 */
@@ -37,7 +37,7 @@ public interface KtlintPluginExtension {
 	public val IntellijIdea: String get() = "intellij_idea"
 
 	/**
-	 * Code style "`android_studio`".
+	 * Constant for the code style "`android_studio`".
 	 *
 	 * @see codeStyle
 	 */
@@ -45,10 +45,15 @@ public interface KtlintPluginExtension {
 	public val AndroidStudio: String get() = "android_studio"
 
 	/**
+	 * Defines the code style ("`ktlint_official`", "`intellij_idea`" or "`android_studio`") to be used for linting
+	 * the code.
+	 * It is advised to define the EditorConfig property `ktlint_code_style` instead of using this property.
 	 *
-	 * Adds the flag `--code-style=<codeStyle>` to the ktlint invocation.
+	 * The default behavior — if no value is set — is dependent on the used ktlint version.
+	 * Since version 1.0.0 the default code style is "`ktlint_official`",
+	 * for versions below 1.0.0 it is "`intellij_idea`".
 	 *
-	 * The default is no explicit code style / whatever ktlint uses as the default.
+	 * If set, then the flag `--code-style=<codeStyle>` is added to the ktlint invocation.
 	 *
 	 * @see KtlintOfficial
 	 * @see IntellijIdea
@@ -60,38 +65,33 @@ public interface KtlintPluginExtension {
 
 	/**
 	 * The maximum number of errors to show.
+	 * This value must be positive. (0 is excluded)
 	 *
-	 * If set, then the flag `--limit=<limit>` will be added to the `ktlint` invocation.
+	 * The default behavior — if no value is set — is to show all errors.
 	 *
-	 * The default is no limit.
+	 * If set, then the flag `--limit=<limit>` is added to the ktlint invocation.
 	 */
 	public val limit: Property<Int>
 
 	// region --experimental
 
 	/**
-	 * Whether or not to enable experimental rules.
-	 *
-	 * If set to `true`, then the flag `--experimental` will be added to the `ktlint` invocation.
+	 * Whether to enable the experimental rules.
 	 *
 	 * The default value is `false`.
+	 *
+	 * If set to `true`, then the flag `--experimental` is added to the ktlint invocation.
 	 *
 	 * @see enableExperimentalRules
 	 */
 	public val experimentalRulesEnabled: Property<Boolean>
 
 	/**
-	 * Enable experimental rules.
+	 * Enables the experimental rules.
 	 *
-	 * Adds the flag `--experimental` to the `ktlint` invocation.
+	 * Adds the flag `--experimental` to the ktlint invocation.
 	 *
-	 * This is a convenience function for
-	 *
-	 * ```
-	 * experimentalRulesEnabled.set(true)
-	 * ```
-	 *
-	 * @see experimentalRulesEnabled
+	 * This is a convenience function for setting the property [experimentalRulesEnabled] to `true`.
 	 */
 	public fun enableExperimentalRules() {
 		this.experimentalRulesEnabled.set(true)
@@ -102,11 +102,12 @@ public interface KtlintPluginExtension {
 	// endregion
 
 	/**
-	 * Whether or not to install the Git pre-commit hook before a build.
+	 * Whether to install the Git pre-commit hook before a build.
 	 *
-	 * This works by making either the "`preBuild`" or the "`build`" task dependent on the hook installation task.
-	 * If the project that the plugin is applied to neither has a "`preBuild`" nor a "`build`" task, configuration will
-	 * fail.
+	 * This is implemented by making either the task "`preBuild`" or the task "`build`" dependent on
+	 * the hook installation task.
+	 * If the project that the plugin is applied to neither has a "`preBuild`" nor a "`build`" task, then
+	 * the gradle configuration will fail.
 	 *
 	 * The default value is `false`.
 	 */
