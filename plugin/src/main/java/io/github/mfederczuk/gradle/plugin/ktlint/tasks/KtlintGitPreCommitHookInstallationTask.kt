@@ -7,7 +7,6 @@ package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
 import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
 import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
-import io.github.mfederczuk.gradle.plugin.ktlint.models.ProjectType
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
@@ -51,9 +50,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	abstract val codeStyle: Property<CodeStyle>
 
 	@get:Input
-	abstract val projectType: Property<ProjectType>
-
-	@get:Input
 	abstract val errorLimit: Property<ErrorLimit>
 
 	@get:Input
@@ -70,7 +66,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		val ktlintClasspathJarFiles: Iterable<File> = this.ktlintClasspathJarFiles.get()
 		val taskName: String = this.taskName.get()
 		val codeStyle: CodeStyle = this.codeStyle.get()
-		val projectType: ProjectType = this.projectType.get()
 		val errorLimit: ErrorLimit = this.errorLimit.get()
 		val experimentalRulesEnabled: Boolean = this.experimentalRulesEnabled.get()
 		val ktlintVersion: SemVer = SemVer.parse(this.ktlintVersion.get())
@@ -81,7 +76,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				ktlintClasspathJarFiles.toList(),
 				taskName,
 				codeStyle,
-				projectType,
 				errorLimit,
 				experimentalRulesEnabled,
 				ktlintVersion,
@@ -97,7 +91,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		ktlintClasspathJarFiles: List<File>,
 		taskName: String,
 		codeStyle: CodeStyle,
-		projectType: ProjectType,
 		errorLimit: ErrorLimit,
 		experimentalRulesEnabled: Boolean,
 		ktlintVersion: SemVer,
@@ -115,18 +108,9 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
 			replace placeholder "HOOK_INSTALLATION_TASK_NAME" with taskName
 
-			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" with run {
-				if (ktlintVersion >= SemVer(0, 49, 0)) {
-					when (codeStyle) {
-						is CodeStyle.Default -> ""
-						is CodeStyle.Specific -> "--code-style=${codeStyle.name}"
-					}
-				} else {
-					when (projectType) {
-						ProjectType.OTHER -> ""
-						ProjectType.ANDROID -> "--android"
-					}
-				}
+			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" with when (codeStyle) {
+				is CodeStyle.Default -> ""
+				is CodeStyle.Specific -> "--code-style=${codeStyle.name}"
 			}
 
 			replace placeholder "KTLINT_LIMIT_OPT_ARG" with when (errorLimit) {

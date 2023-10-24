@@ -18,6 +18,15 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 * The task `installKtlintGitPreCommitHook` is now cacheable
 * The option `--color` is added to the ktlint invocation (can be disabled with [`NO_COLOR`](https://no-color.org/))
 
+### Changed ###
+
+* The minimum supported version of ktlint is now **`0.50.0`**
+
+### Removed ###
+
+* The `android` configuration property (which was deprecated in [version 0.1.0-indev04](#v010-indev04---2023-05-04))
+  has been removed
+
 ## [v0.1.0-indev06] - 2023-09-11 ##
 
 [v0.1.0-indev06]: <https://github.com/mfederczuk/ktlint-github-gradle-plugin/releases/tag/v0.1.0-indev06>

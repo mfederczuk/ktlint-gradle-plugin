@@ -9,7 +9,6 @@ package io.github.mfederczuk.gradle.plugin.ktlint
 
 import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
 import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
-import io.github.mfederczuk.gradle.plugin.ktlint.models.ProjectType
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.GitPreCommitHookPathRefreshTask
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintGitPreCommitHookInstallationTask
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.getCurrentWorkingDirectoryPath
@@ -24,7 +23,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
@@ -41,8 +39,7 @@ public class KtlintPlugin : Plugin<Project> {
 	private companion object {
 		const val EXTENSION_NAME: String = "ktlint"
 
-		// flag --patterns-from-stdin (which is required for the hook) was introduced in 0.48.0
-		val KTLINT_MIN_SUPPORTED_VERSION: SemVer = SemVer(0, 48, 0)
+		val KTLINT_MIN_SUPPORTED_VERSION: SemVer = SemVer(0, 50, 0)
 
 		val KTLINT_NEW_MAVEN_COORDS_VERSION: SemVer = SemVer(1, 0, 0)
 
@@ -63,14 +60,6 @@ public class KtlintPlugin : Plugin<Project> {
 				this.resolveKtlintClasspathJarFilesFromVersion(project, version)
 			}
 
-		val projectTypeProvider: Provider<ProjectType> = extension.android
-			.map { isAndroidProject: Boolean ->
-				when (isAndroidProject) {
-					true -> ProjectType.ANDROID
-					false -> ProjectType.OTHER
-				}
-			}
-
 		val errorLimitProvider: Provider<ErrorLimit> = extension.limit
 			.map<ErrorLimit> { n: Int ->
 				check(n >= 0) {
@@ -88,7 +77,6 @@ public class KtlintPlugin : Plugin<Project> {
 			project,
 			ktlintClasspathJarFilesProvider,
 			codeStyleProvider = extension.codeStyleAsDistinctType,
-			projectTypeProvider,
 			errorLimitProvider,
 			experimentalRulesEnabledProvider = extension.experimentalRulesEnabled,
 			ktlintVersionProvider,
@@ -105,7 +93,6 @@ public class KtlintPlugin : Plugin<Project> {
 		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
 		extension.installGitPreCommitHookBeforeBuild.convention(false)
-		extension.android.convention(false)
 		extension.experimentalRulesEnabled.convention(false)
 
 		return extension
@@ -163,7 +150,6 @@ public class KtlintPlugin : Plugin<Project> {
 		project: Project,
 		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
 		codeStyleProvider: Provider<CodeStyle>,
-		projectTypeProvider: Provider<ProjectType>,
 		errorLimitProvider: Provider<ErrorLimit>,
 		experimentalRulesEnabledProvider: Provider<Boolean>,
 		ktlintVersionProvider: Provider<SemVer>,
@@ -179,7 +165,6 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.ktlintClasspathJarFiles.set(ktlintClasspathJarFilesProvider)
 			this@register.taskName.set(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
 			this@register.codeStyle.set(codeStyleProvider)
-			this@register.projectType.set(projectTypeProvider)
 			this@register.errorLimit.set(errorLimitProvider)
 			this@register.experimentalRulesEnabled.set(experimentalRulesEnabledProvider)
 			this@register.ktlintVersion.set(ktlintVersionProvider.map(SemVer::toString))
@@ -202,53 +187,7 @@ public class KtlintPlugin : Plugin<Project> {
 			"Extension of type ${KtlintPluginExtension::class.java.name} not found in $project".internalErrorMsg
 		}
 
-		this.checkCodeStyleProperties(logger = project.logger, extension)
-
 		this.setupAutomaticGitPreCommitHookInstallation(project, extension)
-	}
-
-	private fun checkCodeStyleProperties(
-		logger: Logger,
-		extension: KtlintPluginExtension,
-	) {
-		val ktlintVersion: SemVer = extension.checkedKtlintVersion.get()
-		val codeStyleProvider: Provider<CodeStyle> = extension.codeStyleAsDistinctType
-
-		if (ktlintVersion < SemVer(0, 49, 0)) {
-			when (codeStyleProvider.get()) {
-				is CodeStyle.Default -> Unit
-				is CodeStyle.Specific -> {
-					val msg: String =
-						"The property `codeStyle` is only available for ktlint version 0.49.0 and above.\n" +
-							"Either bump the configured ktlint version up or use the property `android` instead"
-					incompatibleConfiguration(msg)
-				}
-			}
-
-			return
-		}
-
-		val isAndroidProject: Boolean = extension.android.get()
-		if (!isAndroidProject) {
-			return
-		}
-
-		when (codeStyleProvider.get()) {
-			is CodeStyle.Default -> {
-				val msg: String =
-					"Since ktlint version 0.49.0 the --android flag is deprecated.\n" +
-						"Consider migrating to the --code-style flag. " +
-						"(Kotlin: `codeStyle.set(AndroidStudio)` / Groovy: `codeStyle = 'android_studio'`)"
-				logger.warn(msg)
-			}
-
-			is CodeStyle.Specific -> {
-				val msg: String =
-					"Both properties `codeStyle` and `android` are set.\n" +
-						"Use either one or none, but not both"
-				incompatibleConfiguration(msg)
-			}
-		}
 	}
 
 	private fun setupAutomaticGitPreCommitHookInstallation(
@@ -318,8 +257,4 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 
 	// endregion
-
-	private fun incompatibleConfiguration(msg: String): Nothing {
-		error("Incompatible configuration; $msg")
-	}
 }
