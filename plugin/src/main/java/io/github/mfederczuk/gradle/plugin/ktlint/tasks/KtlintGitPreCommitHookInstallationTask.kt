@@ -3,10 +3,15 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-package io.github.mfederczuk.gradle.plugin.ktlint
+package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
+import io.github.mfederczuk.gradle.plugin.ktlint.GitService
+import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ProjectType
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import net.swiftzer.semver.SemVer
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property

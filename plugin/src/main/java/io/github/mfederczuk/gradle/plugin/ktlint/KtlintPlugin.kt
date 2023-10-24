@@ -7,6 +7,12 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
+import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ProjectType
+import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintGitPreCommitHookInstallationTask
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.isValid
 import net.swiftzer.semver.SemVer
 import org.gradle.api.Plugin
 import org.gradle.api.Project

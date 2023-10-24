@@ -5,6 +5,7 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.relativeToCwd
 import org.gradle.api.file.ProjectLayout
 import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
