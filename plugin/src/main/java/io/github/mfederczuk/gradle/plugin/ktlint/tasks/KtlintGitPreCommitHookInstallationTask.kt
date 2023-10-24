@@ -3,18 +3,24 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-package io.github.mfederczuk.gradle.plugin.ktlint
+package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
+import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ProjectType
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import net.swiftzer.semver.SemVer
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -23,7 +29,7 @@ import java.util.jar.JarFile
 import java.util.jar.Manifest
 import javax.annotation.CheckReturnValue
 
-@DisableCachingByDefault(because = "Not worth caching")
+@CacheableTask
 internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
 	private companion object {
@@ -34,10 +40,8 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER = "other"
 	}
 
-	@get:Nested
-	abstract val gitService: GitService
-
 	@get:InputFiles
+	@get:Classpath
 	abstract val ktlintClasspathJarFiles: Property<Iterable<File>>
 
 	@get:Input
@@ -56,7 +60,10 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	abstract val experimentalRulesEnabled: Property<Boolean>
 
 	@get:Input
-	abstract val ktlintVersion: Property<SemVer>
+	abstract val ktlintVersion: Property<String>
+
+	@get:OutputFile
+	abstract val gitPreCommitHookFile: RegularFileProperty
 
 	@TaskAction
 	fun installKtlintGitPreCommitHook() {
@@ -66,7 +73,8 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		val projectType: ProjectType = this.projectType.get()
 		val errorLimit: ErrorLimit = this.errorLimit.get()
 		val experimentalRulesEnabled: Boolean = this.experimentalRulesEnabled.get()
-		val ktlintVersion: SemVer = this.ktlintVersion.get()
+		val ktlintVersion: SemVer = SemVer.parse(this.ktlintVersion.get())
+		val hookFile: File = this.gitPreCommitHookFile.get().asFile
 
 		val hookScript: String = this
 			.loadHookScript(
@@ -79,11 +87,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				ktlintVersion,
 			)
 
-		// TODO: switch to output property? determine git dir at configuration time?
-		//       this would generally be the better way to design this, but the problem is that to determine
-		//       the git dir, we need to execute an external program (git itself) and i don't think that's good idea to
-		//       do at configuration time...
-		val hookFile: File = this.gitService.determinePreCommitHookFilePath()
 		hookFile.parentFile?.mkdirs()
 		hookFile.writeText(hookScript)
 		hookFile.setExecutable(true)

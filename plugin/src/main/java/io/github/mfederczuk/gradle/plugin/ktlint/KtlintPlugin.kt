@@ -7,6 +7,14 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
+import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.models.ProjectType
+import io.github.mfederczuk.gradle.plugin.ktlint.tasks.GitPreCommitHookPathRefreshTask
+import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintGitPreCommitHookInstallationTask
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.getCurrentWorkingDirectoryPath
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
+import io.github.mfederczuk.gradle.plugin.ktlint.utils.isValid
 import net.swiftzer.semver.SemVer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -14,13 +22,18 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.register
 import java.io.File
+import java.nio.file.Path
+import java.time.LocalDate
 import javax.annotation.CheckReturnValue
 
 public class KtlintPlugin : Plugin<Project> {
@@ -68,6 +81,9 @@ public class KtlintPlugin : Plugin<Project> {
 			}
 			.orElse(ErrorLimit.None)
 
+		val gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask> =
+			this.registerGitPreCommitHookInfoRefreshTask(project)
+
 		this.registerGitPreCommitHookInstallationTask(
 			project,
 			ktlintClasspathJarFilesProvider,
@@ -76,6 +92,7 @@ public class KtlintPlugin : Plugin<Project> {
 			errorLimitProvider,
 			experimentalRulesEnabledProvider = extension.experimentalRulesEnabled,
 			ktlintVersionProvider,
+			gitPreCommitHookPathRefreshTaskProvider,
 		)
 
 		project.afterEvaluate {
@@ -123,6 +140,25 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 	}
 
+	@CheckReturnValue
+	private fun registerGitPreCommitHookInfoRefreshTask(project: Project): TaskProvider<GitPreCommitHookPathRefreshTask> {
+		return project.tasks.register<GitPreCommitHookPathRefreshTask>("refreshGitPreCommitHookPath") {
+			this@register.group = TASK_GROUP_NAME
+			this@register.description = "(internal) Saves the path of the Git pre-commit hook file"
+
+			this@register.gitDirEnvironmentVariableValue.set(project.provider { System.getenv("GIT_DIR").orEmpty() })
+			this@register.workingDirectoryPath.set(project.provider { getCurrentWorkingDirectoryPath().toString() })
+			this@register.currentDate.set(project.provider { LocalDate.now().toString() })
+
+			val hookPathOutputFileProvider: Provider<RegularFile> = project.layout.buildDirectory
+				.dir("git")
+				.map { dir: Directory ->
+					dir.file("preCommitPath.txt")
+				}
+			this@register.hookPathOutputFile.set(hookPathOutputFileProvider)
+		}
+	}
+
 	private fun registerGitPreCommitHookInstallationTask(
 		project: Project,
 		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
@@ -131,10 +167,14 @@ public class KtlintPlugin : Plugin<Project> {
 		errorLimitProvider: Provider<ErrorLimit>,
 		experimentalRulesEnabledProvider: Provider<Boolean>,
 		ktlintVersionProvider: Provider<SemVer>,
-	) {
-		project.tasks.register<KtlintGitPreCommitHookInstallationTask>(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
+		gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask>,
+	): TaskProvider<KtlintGitPreCommitHookInstallationTask> {
+		@Suppress("ktlint:standard:max-line-length", "ktlint:standard:argument-list-wrapping", "LongLine")
+		return project.tasks.register<KtlintGitPreCommitHookInstallationTask>(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
 			this@register.group = TASK_GROUP_NAME
 			this@register.description = "Installs the ktlint Git pre-commit hook"
+
+			this@register.dependsOn(gitPreCommitHookPathRefreshTaskProvider)
 
 			this@register.ktlintClasspathJarFiles.set(ktlintClasspathJarFilesProvider)
 			this@register.taskName.set(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
@@ -142,7 +182,15 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.projectType.set(projectTypeProvider)
 			this@register.errorLimit.set(errorLimitProvider)
 			this@register.experimentalRulesEnabled.set(experimentalRulesEnabledProvider)
-			this@register.ktlintVersion.set(ktlintVersionProvider)
+			this@register.ktlintVersion.set(ktlintVersionProvider.map(SemVer::toString))
+
+			val gitPreCommitHookFileProvider: Provider<RegularFile> = gitPreCommitHookPathRefreshTaskProvider
+				.flatMap { gitPreCommitHookPathRefreshTask: GitPreCommitHookPathRefreshTask ->
+					gitPreCommitHookPathRefreshTask.getHookFile(project.providers)
+				}
+				.map(Path::toFile)
+				.let(project.layout::file)
+			this@register.gitPreCommitHookFile.set(gitPreCommitHookFileProvider)
 		}
 	}
 
