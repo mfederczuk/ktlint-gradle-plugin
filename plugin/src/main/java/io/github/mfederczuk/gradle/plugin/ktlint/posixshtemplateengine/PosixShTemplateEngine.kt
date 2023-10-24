@@ -65,7 +65,11 @@ internal class PosixShTemplateEngine(
 	}
 
 	@CheckReturnValue
-	private fun replaceMatch(generatedDateTime: ZonedDateTime, line: String, matchResult: MatchResult): String {
+	private fun replaceMatch(
+		generatedDateTime: ZonedDateTime,
+		line: String,
+		matchResult: MatchResult,
+	): String {
 		val placeholderName: String = matchResult.groupValues[1]
 
 		check(placeholderName.isNotEmpty()) {

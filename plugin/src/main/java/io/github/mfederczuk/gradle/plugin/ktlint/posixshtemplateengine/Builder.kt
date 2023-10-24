@@ -61,6 +61,7 @@ internal interface PosixShTemplateEngineBuilder {
 
 		interface Placeholder {
 			infix fun with(value: String)
+
 			infix fun with(generatedDateTime: GeneratedDateTime)
 		}
 
@@ -74,9 +75,7 @@ internal interface PosixShTemplateEngineBuilder {
 }
 
 @CheckReturnValue
-internal fun buildPosixShTemplateEngine(
-	block: PosixShTemplateEngineBuilder.() -> Unit,
-): PosixShTemplateEngine {
+internal fun buildPosixShTemplateEngine(block: PosixShTemplateEngineBuilder.() -> Unit): PosixShTemplateEngine {
 	val builder = PosixShTemplateEngineBuilderImpl()
 	with(builder, block)
 	return builder.build()

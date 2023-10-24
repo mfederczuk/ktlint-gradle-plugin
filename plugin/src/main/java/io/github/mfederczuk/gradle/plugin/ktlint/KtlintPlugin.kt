@@ -95,7 +95,10 @@ public class KtlintPlugin : Plugin<Project> {
 	}
 
 	@CheckReturnValue
-	private fun resolveKtlintClasspathJarFilesFromVersion(project: Project, ktlintVersion: SemVer): Set<File> {
+	private fun resolveKtlintClasspathJarFilesFromVersion(
+		project: Project,
+		ktlintVersion: SemVer,
+	): Set<File> {
 		val ktlintDependencyNotationWithoutVersion: String =
 			if (ktlintVersion >= KTLINT_NEW_MAVEN_COORDS_VERSION) {
 				KTLINT_DEPENDENCY_NOTATION_WITHOUT_VERSION_NEW
@@ -156,7 +159,10 @@ public class KtlintPlugin : Plugin<Project> {
 		this.setupAutomaticGitPreCommitHookInstallation(project, extension)
 	}
 
-	private fun checkCodeStyleProperties(logger: Logger, extension: KtlintPluginExtension) {
+	private fun checkCodeStyleProperties(
+		logger: Logger,
+		extension: KtlintPluginExtension,
+	) {
 		val ktlintVersion: SemVer = extension.checkedKtlintVersion.get()
 		val codeStyleProvider: Provider<CodeStyle> = extension.codeStyleAsDistinctType
 
@@ -197,7 +203,10 @@ public class KtlintPlugin : Plugin<Project> {
 		}
 	}
 
-	private fun setupAutomaticGitPreCommitHookInstallation(project: Project, extension: KtlintPluginExtension) {
+	private fun setupAutomaticGitPreCommitHookInstallation(
+		project: Project,
+		extension: KtlintPluginExtension,
+	) {
 		val installGitPreCommitHookBeforeBuild: Boolean = extension.installGitPreCommitHookBeforeBuild.get()
 		if (!installGitPreCommitHookBeforeBuild) {
 			return
