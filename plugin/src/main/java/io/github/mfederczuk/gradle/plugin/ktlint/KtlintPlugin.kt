@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-@file:Suppress("RemoveExplicitTypeArguments")
-
 package io.github.mfederczuk.gradle.plugin.ktlint
 
 import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
@@ -50,7 +48,7 @@ public class KtlintPlugin : Plugin<Project> {
 			)
 
 		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = configurationProvider
-			.map<Iterable<File>> { configuration: PluginConfiguration ->
+			.map { configuration: PluginConfiguration ->
 				resolveKtlintClasspathJarFilesFromVersion(
 					configuration.ktlintVersion,
 					dependencyHandler = project.dependencies,
@@ -89,8 +87,8 @@ public class KtlintPlugin : Plugin<Project> {
 	private fun createExtension(extensionContainer: ExtensionContainer): KtlintPluginExtension {
 		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
-		extension.installGitPreCommitHookBeforeBuild.convention(false)
 		extension.experimental.convention(false)
+		extension.installGitPreCommitHookBeforeBuild.convention(false)
 
 		return extension
 	}
