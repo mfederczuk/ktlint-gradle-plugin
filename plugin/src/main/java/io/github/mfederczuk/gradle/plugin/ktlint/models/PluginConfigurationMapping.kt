@@ -22,7 +22,7 @@ internal fun KtlintPluginExtension.toConfiguration(providerFactory: ProviderFact
 			mapVersionStringProvider(providerFactory, this.version),
 			mapCodeStyleProvider(this.codeStyle),
 			mapLimitProvider(this.limit),
-			this.experimentalRulesEnabled,
+			this.experimental,
 			this.installGitPreCommitHookBeforeBuild,
 		) {
 				ktlintVersion: SemVer,

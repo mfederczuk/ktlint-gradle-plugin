@@ -82,19 +82,19 @@ public interface KtlintPluginExtension {
 	 *
 	 * If set to `true`, then the flag `--experimental` is added to the ktlint invocation.
 	 *
-	 * @see enableExperimentalRules
+	 * @see enableExperimental
 	 */
-	public val experimentalRulesEnabled: Property<Boolean>
+	public val experimental: Property<Boolean>
 
 	/**
 	 * Enables the experimental rules.
 	 *
 	 * Adds the flag `--experimental` to the ktlint invocation.
 	 *
-	 * This is a convenience function for setting the property [experimentalRulesEnabled] to `true`.
+	 * This is a convenience function for setting the property [experimental] to `true`.
 	 */
-	public fun enableExperimentalRules() {
-		this.experimentalRulesEnabled.set(true)
+	public fun enableExperimental() {
+		this.experimental.set(true)
 	}
 
 	// endregion

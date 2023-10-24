@@ -94,7 +94,7 @@ public class KtlintPlugin : Plugin<Project> {
 		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
 		extension.installGitPreCommitHookBeforeBuild.convention(false)
-		extension.experimentalRulesEnabled.convention(false)
+		extension.experimental.convention(false)
 
 		return extension
 	}
