@@ -31,7 +31,7 @@ kotlin {
 
 @Suppress("SpellCheckingInspection")
 dependencies {
-	implementation("net.swiftzer.semver:semver:1.2.0")
+	implementation("net.swiftzer.semver:semver:1.3.0")
 }
 
 // region publishing
