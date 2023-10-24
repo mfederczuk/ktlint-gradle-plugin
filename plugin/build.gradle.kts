@@ -50,8 +50,8 @@ val pluginSshGitRepoUrl: URI = URI("ssh://git@github.com/mfederczuk/ktlint-gradl
 val pluginIssueManagementWebsiteUrl: URI = URI("https://github.com/mfederczuk/ktlint-gradle-plugin/issues")
 
 gradlePlugin {
-	website.set(pluginWebsiteUrl.toString())
-	vcsUrl.set(pluginHttpsGitRepoUrl.toString())
+	website = pluginWebsiteUrl.toString()
+	vcsUrl = pluginHttpsGitRepoUrl.toString()
 
 	plugins.create(pluginName) {
 		id = "${project.group}.$pluginName"
@@ -59,7 +59,7 @@ gradlePlugin {
 
 		displayName = pluginDisplayName
 		description = pluginDescription
-		tags.set(setOf("linting", "ktlint", "git-hooks"))
+		tags = setOf("linting", "ktlint", "git-hooks")
 	}
 }
 
@@ -71,48 +71,48 @@ publishing {
 			version = project.version.toString()
 
 			pom {
-				name.set(pluginDisplayName)
-				description.set(pluginDescription)
-				url.set(pluginWebsiteUrl.toString())
-				inceptionYear.set("2023")
+				name = pluginDisplayName
+				description = pluginDescription
+				url = pluginWebsiteUrl.toString()
+				inceptionYear = "2023"
 
 				licenses {
 					license {
-						name.set("MPL-2.0")
-						url.set("https://www.mozilla.org/media/MPL/2.0/index.txt")
-						comments.set("Mozilla Public License 2.0")
-						distribution.set("repo")
+						name = "MPL-2.0"
+						url = "https://www.mozilla.org/media/MPL/2.0/index.txt"
+						comments = "Mozilla Public License 2.0"
+						distribution = "repo"
 					}
 					license {
-						name.set("Apache-2.0")
-						url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-						comments.set("The Apache License, Version 2.0")
-						distribution.set("repo")
+						name = "Apache-2.0"
+						url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+						comments = "The Apache License, Version 2.0"
+						distribution = "repo"
 					}
 				}
 
 				developers {
 					developer {
-						id.set("mfederczuk")
-						name.set("Michael Federczuk")
-						email.set("federczuk.michael@protonmail.com")
-						url.set("https://github.com/mfederczuk")
-						timezone.set("Europe/Vienna")
+						id = "mfederczuk"
+						name = "Michael Federczuk"
+						email = "federczuk.michael@protonmail.com"
+						url = "https://github.com/mfederczuk"
+						timezone = "Europe/Vienna"
 					}
 				}
 				contributors {
 				}
 
 				issueManagement {
-					system.set("GitHub Issues")
-					url.set(pluginIssueManagementWebsiteUrl.toString())
+					system = "GitHub Issues"
+					url = pluginIssueManagementWebsiteUrl.toString()
 				}
 
 				scm {
-					connection.set("scm:git:$pluginHttpsGitRepoUrl")
-					developerConnection.set("scm:git:$pluginSshGitRepoUrl")
-					tag.set("v${project.version}")
-					url.set(pluginRepoWebsiteUrl.toString())
+					connection = "scm:git:$pluginHttpsGitRepoUrl"
+					developerConnection = "scm:git:$pluginSshGitRepoUrl"
+					tag = "v${project.version}"
+					url = pluginRepoWebsiteUrl.toString()
 				}
 			}
 		}

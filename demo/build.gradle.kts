@@ -11,11 +11,11 @@ repositories {
 }
 
 ktlint {
-	version.set("1.0.0")
-	// codeStyle.set(AndroidStudio)
-	// limit.set(5)
+	version = "1.0.0"
+	// codeStyle = AndroidStudio
+	// limit = 5
 	// enableExperimentalRules()
-	installGitPreCommitHookBeforeBuild.set(true)
+	installGitPreCommitHookBeforeBuild = true
 }
 
-application.mainClass.set("io.github.mfederczuk.gradle.plugin.ktlint.demo.Main")
+application.mainClass = "io.github.mfederczuk.gradle.plugin.ktlint.demo.Main"
