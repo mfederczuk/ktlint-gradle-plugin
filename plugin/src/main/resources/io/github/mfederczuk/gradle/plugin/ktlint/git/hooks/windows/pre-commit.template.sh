@@ -150,7 +150,33 @@ readonly using_intellij_idea_terminal
 
 #endregion
 
+#region detecting stdin color support
+
+stdin_supports_color=false
+
+if [ -z "${NO_COLOR-}" ] && [ -t 1 ]; then
+	case "${TERM-}" in
+		('xterm-color'|*'-256color'|'xterm-kitty')
+			stdin_supports_color=true
+			;;
+	esac
+
+	if ! $stdin_supports_color && command -v tput > '/dev/null' && tput 'setaf' '1' 1> '/dev/null' 2>&1; then
+		stdin_supports_color=true
+	fi
+fi
+
+readonly stdin_supports_color
+
+#endregion
+
 #region running ktlint
+
+ktlint_color_opt_arg=''
+if $stdin_supports_color; then
+	ktlint_color_opt_arg='--color'
+fi
+readonly ktlint_color_opt_arg
 
 ktlint_code_style_opt_arg=//KTLINT_CODE_STYLE_OPT_ARG::quoted_string//
 readonly ktlint_code_style_opt_arg
@@ -176,6 +202,7 @@ printf 'Running ktlint (v%s)...\n' "$ktlint_version" >&2
 
 exc=0
 java -classpath "$ktlint_classpath" "$ktlint_main_class_name" \
+     $ktlint_color_opt_arg \
      $ktlint_code_style_opt_arg \
      $ktlint_relative_opt_arg \
      $ktlint_limit_opt_arg \
