@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0
 
 plugins {
-	kotlin("jvm") version "1.8.20"
+	kotlin("jvm") version "1.9.10"
 	application
 	id("io.github.mfederczuk.ktlint") version "0.1.0-indev06"
 }
