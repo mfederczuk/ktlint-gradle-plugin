@@ -11,7 +11,7 @@ repositories {
 }
 
 ktlint {
-	version = "1.0.0"
+	version = "1.0.1"
 	// codeStyle = AndroidStudio
 	// limit = 5
 	// enableExperimentalRules()
