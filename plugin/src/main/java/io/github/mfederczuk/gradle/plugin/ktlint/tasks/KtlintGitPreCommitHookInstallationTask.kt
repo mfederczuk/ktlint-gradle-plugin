@@ -5,8 +5,8 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
-import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
-import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg

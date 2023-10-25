@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
-package io.github.mfederczuk.gradle.plugin.ktlint.models
+package io.github.mfederczuk.gradle.plugin.ktlint.configuration
 
 import net.swiftzer.semver.SemVer
 

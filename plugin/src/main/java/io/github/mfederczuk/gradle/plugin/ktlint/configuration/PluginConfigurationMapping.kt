@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-package io.github.mfederczuk.gradle.plugin.ktlint.models
+package io.github.mfederczuk.gradle.plugin.ktlint.configuration
 
 import io.github.mfederczuk.gradle.plugin.ktlint.KtlintPluginExtension
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.isValid

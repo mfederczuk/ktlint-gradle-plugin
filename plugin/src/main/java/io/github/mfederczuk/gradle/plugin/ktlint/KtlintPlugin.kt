@@ -5,10 +5,10 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
-import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
-import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
-import io.github.mfederczuk.gradle.plugin.ktlint.models.PluginConfiguration
-import io.github.mfederczuk.gradle.plugin.ktlint.models.toConfiguration
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfiguration
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.GitPreCommitHookPathRefreshTask
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintGitPreCommitHookInstallationTask
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.getCurrentWorkingDirectoryPath
