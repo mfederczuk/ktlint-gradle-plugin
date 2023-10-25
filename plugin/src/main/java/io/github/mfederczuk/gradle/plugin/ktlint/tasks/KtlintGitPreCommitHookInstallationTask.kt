@@ -44,9 +44,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	abstract val ktlintClasspathJarFiles: Property<Iterable<File>>
 
 	@get:Input
-	abstract val taskName: Property<String>
-
-	@get:Input
 	abstract val codeStyle: Property<CodeStyle>
 
 	@get:Input
@@ -64,7 +61,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	@TaskAction
 	fun installKtlintGitPreCommitHook() {
 		val ktlintClasspathJarFiles: Iterable<File> = this.ktlintClasspathJarFiles.get()
-		val taskName: String = this.taskName.get()
 		val codeStyle: CodeStyle = this.codeStyle.get()
 		val errorLimit: ErrorLimit = this.errorLimit.get()
 		val experimentalRulesEnabled: Boolean = this.experimentalRulesEnabled.get()
@@ -74,7 +70,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		val hookScript: String = this
 			.loadHookScript(
 				ktlintClasspathJarFiles.toList(),
-				taskName,
 				codeStyle,
 				errorLimit,
 				experimentalRulesEnabled,
@@ -89,7 +84,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	@CheckReturnValue
 	private fun loadHookScript(
 		ktlintClasspathJarFiles: List<File>,
-		taskName: String,
 		codeStyle: CodeStyle,
 		errorLimit: ErrorLimit,
 		experimentalRulesEnabled: Boolean,
@@ -106,7 +100,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 				ktlintClasspathJarFiles.first().extractJarFileMainClassName()
 			}
 
-			replace placeholder "HOOK_INSTALLATION_TASK_NAME" with taskName
+			replace placeholder "HOOK_INSTALLATION_TASK_NAME" with this@KtlintGitPreCommitHookInstallationTask.name
 
 			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" with when (codeStyle) {
 				is CodeStyle.Default -> ""

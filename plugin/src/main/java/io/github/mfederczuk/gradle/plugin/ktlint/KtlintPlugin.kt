@@ -129,7 +129,6 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.dependsOn(gitPreCommitHookPathRefreshTaskProvider)
 
 			this@register.ktlintClasspathJarFiles.set(ktlintClasspathJarFilesProvider)
-			this@register.taskName.set(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
 			this@register.codeStyle.set(codeStyleProvider)
 			this@register.errorLimit.set(errorLimitProvider)
 			this@register.experimentalRulesEnabled.set(experimentalRulesEnabledProvider)
