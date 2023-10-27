@@ -43,6 +43,8 @@ internal abstract class GitPreCommitHookPathRefreshTask : DefaultTask() {
 		this.inputs.property("gitDirEnvVar", gitDirEnvVarProvider)
 
 		// refresh the hook path every new day
+		// note: for some reason this only works if the gradle task is executed via IntelliJ IDEA.
+		//       it doesn't work if the gradle wrapper script is used
 		this.inputs.property("currentDate", this.project.provider { LocalDate.now().toString() })
 	}
 
