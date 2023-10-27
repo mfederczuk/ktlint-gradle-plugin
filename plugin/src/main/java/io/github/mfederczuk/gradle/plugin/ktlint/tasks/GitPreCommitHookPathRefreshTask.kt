@@ -30,6 +30,10 @@ import javax.annotation.CheckReturnValue
 @CacheableTask
 internal abstract class GitPreCommitHookPathRefreshTask : DefaultTask() {
 
+	init {
+		this.description = "(internal) Saves the path of the Git pre-commit hook file"
+	}
+
 	@get:Nested
 	abstract val gitService: GitService
 

@@ -74,7 +74,6 @@ public class KtlintPlugin : Plugin<Project> {
 	private fun registerGitPreCommitHookInfoRefreshTask(project: Project): TaskProvider<GitPreCommitHookPathRefreshTask> {
 		return project.tasks.register<GitPreCommitHookPathRefreshTask>("refreshGitPreCommitHookPath") {
 			this@register.group = TASK_GROUP_NAME
-			this@register.description = "(internal) Saves the path of the Git pre-commit hook file"
 
 			this@register.gitDirEnvironmentVariableValue.set(project.provider { System.getenv("GIT_DIR").orEmpty() })
 			this@register.workingDirectoryPath.set(project.provider { getCurrentWorkingDirectoryPath().toString() })
@@ -101,7 +100,6 @@ public class KtlintPlugin : Plugin<Project> {
 		@Suppress("ktlint:standard:max-line-length", "ktlint:standard:argument-list-wrapping", "LongLine")
 		return project.tasks.register<KtlintGitPreCommitHookInstallationTask>(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
 			this@register.group = TASK_GROUP_NAME
-			this@register.description = "Installs the ktlint Git pre-commit hook"
 
 			this@register.dependsOn(gitPreCommitHookPathRefreshTaskProvider)
 

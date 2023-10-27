@@ -39,6 +39,10 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER = "other"
 	}
 
+	init {
+		this.description = "Installs the ktlint Git pre-commit hook"
+	}
+
 	@get:InputFiles
 	@get:Classpath
 	abstract val ktlintClasspathJarFiles: Property<Iterable<File>>
