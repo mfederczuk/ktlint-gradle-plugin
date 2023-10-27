@@ -8,18 +8,17 @@ package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 import io.github.mfederczuk.gradle.plugin.ktlint.GitService
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.nio.file.Path
+import java.time.LocalDate
 import javax.annotation.CheckReturnValue
 
 /**
@@ -37,22 +36,26 @@ internal abstract class GitPreCommitHookPathRefreshTask : DefaultTask() {
 	@get:Nested
 	abstract val gitService: GitService
 
-	/** Refresh the hook path if the environment variable `$GIT_DIR` changes */
-	@get:Input
-	abstract val gitDirEnvironmentVariableValue: Property<String>
+	init {
+		// refresh the hook path if the environment variable `$GIT_DIR` changes
+		val gitDirEnvVarProvider: Provider<String> = this.project.providers.environmentVariable("GIT_DIR")
+			.orElse("")
+		this.inputs.property("gitDirEnvVar", gitDirEnvVarProvider)
 
-	/** Refresh the hook path every new day */
-	@get:Input
-	abstract val currentDate: Property<String>
+		// refresh the hook path every new day
+		this.inputs.property("currentDate", this.project.provider { LocalDate.now().toString() })
+	}
 
 	@get:OutputFile
-	abstract val hookPathOutputFile: RegularFileProperty
+	val hookPathOutputFile: Provider<RegularFile> = this.project.layout.buildDirectory
+		.dir("git")
+		.map { dir: Directory ->
+			dir.file("preCommitPath.txt")
+		}
 
 	@TaskAction
 	fun refreshGitPreCommitHookPath() {
-		this.gitDirEnvironmentVariableValue.get()
-		this.currentDate.get()
-		val hookPathOutputFile: File = this.hookPathOutputFile.asFile.get()
+		val hookPathOutputFile: File = this.hookPathOutputFile.get().asFile
 
 		val hookFilePath: Path = this.gitService.determinePreCommitHookFilePath()
 

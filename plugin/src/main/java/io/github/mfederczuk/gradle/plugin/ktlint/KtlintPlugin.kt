@@ -16,14 +16,12 @@ import net.swiftzer.semver.SemVer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.nio.file.Path
-import java.time.LocalDate
 import javax.annotation.CheckReturnValue
 
 public class KtlintPlugin : Plugin<Project> {
@@ -73,16 +71,6 @@ public class KtlintPlugin : Plugin<Project> {
 	private fun registerGitPreCommitHookInfoRefreshTask(project: Project): TaskProvider<GitPreCommitHookPathRefreshTask> {
 		return project.tasks.register<GitPreCommitHookPathRefreshTask>("refreshGitPreCommitHookPath") {
 			this@register.group = TASK_GROUP_NAME
-
-			this@register.gitDirEnvironmentVariableValue.set(project.provider { System.getenv("GIT_DIR").orEmpty() })
-			this@register.currentDate.set(project.provider { LocalDate.now().toString() })
-
-			val hookPathOutputFileProvider: Provider<RegularFile> = project.layout.buildDirectory
-				.dir("git")
-				.map { dir: Directory ->
-					dir.file("preCommitPath.txt")
-				}
-			this@register.hookPathOutputFile.set(hookPathOutputFileProvider)
 		}
 	}
 
