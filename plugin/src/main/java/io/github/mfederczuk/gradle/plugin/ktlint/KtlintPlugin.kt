@@ -5,120 +5,44 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint
 
-import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
-import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.GitPreCommitHookPathRefreshTask
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintGitPreCommitHookInstallationTask
-import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
-import net.swiftzer.semver.SemVer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.RegularFile
-import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.register
-import java.io.File
-import java.nio.file.Path
-import javax.annotation.CheckReturnValue
 
 public class KtlintPlugin : Plugin<Project> {
 
 	private companion object {
 		const val TASK_GROUP_NAME: String = "ktlint"
-		const val KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME: String = "installKtlintGitPreCommitHook"
 	}
 
 	override fun apply(project: Project) {
-		val configurationProvider: Provider<PluginConfiguration> = this.createConfiguration(project)
+		PluginExtensionUtils.createExtension(project)
 
-		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = configurationProvider
-			.map { configuration: PluginConfiguration ->
-				resolveKtlintClasspathJarFilesFromVersion(
-					configuration.ktlintVersion,
-					dependencyHandler = project.dependencies,
-					configurationContainer = project.configurations,
-				)
-			}
-
-		val gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask> =
-			this.registerGitPreCommitHookInfoRefreshTask(project)
-
-		this.registerGitPreCommitHookInstallationTask(
-			project,
-			ktlintClasspathJarFilesProvider,
-			codeStyleProvider = configurationProvider.map(PluginConfiguration::codeStyle),
-			errorLimitProvider = configurationProvider.map(PluginConfiguration::errorLimit),
-			experimentalRulesEnabledProvider = configurationProvider.map(PluginConfiguration::experimentalRulesEnabled),
-			ktlintVersionProvider = configurationProvider.map(PluginConfiguration::ktlintVersion),
-			gitPreCommitHookPathRefreshTaskProvider,
-		)
+		this.registerTasks(project)
 
 		project.afterEvaluate {
-			this@KtlintPlugin.afterEvaluate(project = this@afterEvaluate)
+			this@KtlintPlugin.setupAutomaticGitPreCommitHookInstallation(project = this@afterEvaluate)
 		}
 	}
 
-	@CheckReturnValue
-	private fun createConfiguration(project: Project): Provider<PluginConfiguration> {
-		return PluginExtensionUtils.createExtension(project)
-			.toConfiguration(project.providers)
+	private fun registerTasks(project: Project) {
+		GitPreCommitHookPathRefreshTask.registerIn(project, groupName = TASK_GROUP_NAME)
+
+		KtlintGitPreCommitHookInstallationTask.registerIn(project, groupName = TASK_GROUP_NAME)
 	}
 
-	@CheckReturnValue
-	private fun registerGitPreCommitHookInfoRefreshTask(project: Project): TaskProvider<GitPreCommitHookPathRefreshTask> {
-		return project.tasks.register<GitPreCommitHookPathRefreshTask>("refreshGitPreCommitHookPath") {
-			this@register.group = TASK_GROUP_NAME
-		}
-	}
-
-	private fun registerGitPreCommitHookInstallationTask(
-		project: Project,
-		ktlintClasspathJarFilesProvider: Provider<Iterable<File>>,
-		codeStyleProvider: Provider<CodeStyle>,
-		errorLimitProvider: Provider<ErrorLimit>,
-		experimentalRulesEnabledProvider: Provider<Boolean>,
-		ktlintVersionProvider: Provider<SemVer>,
-		gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask>,
-	): TaskProvider<KtlintGitPreCommitHookInstallationTask> {
-		@Suppress("ktlint:standard:max-line-length", "ktlint:standard:argument-list-wrapping", "LongLine")
-		return project.tasks.register<KtlintGitPreCommitHookInstallationTask>(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME) {
-			this@register.group = TASK_GROUP_NAME
-
-			this@register.dependsOn(gitPreCommitHookPathRefreshTaskProvider)
-
-			this@register.ktlintClasspathJarFiles.set(ktlintClasspathJarFilesProvider)
-			this@register.codeStyle.set(codeStyleProvider)
-			this@register.errorLimit.set(errorLimitProvider)
-			this@register.experimentalRulesEnabled.set(experimentalRulesEnabledProvider)
-			this@register.ktlintVersion.set(ktlintVersionProvider.map(SemVer::toString))
-
-			val gitPreCommitHookFileProvider: Provider<RegularFile> = gitPreCommitHookPathRefreshTaskProvider
-				.flatMap { gitPreCommitHookPathRefreshTask: GitPreCommitHookPathRefreshTask ->
-					gitPreCommitHookPathRefreshTask.getHookFile(project.providers)
-				}
-				.map(Path::toFile)
-				.let(project.layout::file)
-			this@register.gitPreCommitHookFile.set(gitPreCommitHookFileProvider)
-		}
-	}
-
-	// region afterEvaluate
-
-	private fun afterEvaluate(project: Project) {
+	private fun setupAutomaticGitPreCommitHookInstallation(project: Project) {
 		val extension: KtlintPluginExtension = PluginExtensionUtils.getExtension(project)
 
-		this.setupAutomaticGitPreCommitHookInstallation(project, extension)
-	}
+		val shouldInstallGitPreCommitHookBeforeBuild: Boolean = extension.toConfiguration(project.providers)
+			.map(PluginConfiguration::shouldInstallGitPreCommitHookBeforeBuild)
+			.get()
 
-	private fun setupAutomaticGitPreCommitHookInstallation(
-		project: Project,
-		extension: KtlintPluginExtension,
-	) {
-		val installGitPreCommitHookBeforeBuild: Boolean = extension.installGitPreCommitHookBeforeBuild.get()
-		if (!installGitPreCommitHookBeforeBuild) {
+		if (!shouldInstallGitPreCommitHookBeforeBuild) {
 			return
 		}
 
@@ -131,14 +55,8 @@ public class KtlintPlugin : Plugin<Project> {
 				"to `false`, or apply the plugin to a non-root project"
 		}
 
-		val gitPreCommitHookInstallationTask: Task? =
-			project.tasks.findByName(KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME)
-		checkNotNull(gitPreCommitHookInstallationTask) {
-			"Task with name \"$KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME\" not found in $project".internalErrorMsg
-		}
+		val gitPreCommitHookInstallationTask: Task = KtlintGitPreCommitHookInstallationTask.getFrom(project)
 
 		targetTask.dependsOn(gitPreCommitHookInstallationTask)
 	}
-
-	// endregion
 }

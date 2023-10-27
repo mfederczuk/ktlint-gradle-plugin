@@ -8,6 +8,7 @@ package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 import io.github.mfederczuk.gradle.plugin.ktlint.GitService
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -16,6 +17,9 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.nio.file.Path
 import java.time.LocalDate
@@ -28,6 +32,25 @@ import javax.annotation.CheckReturnValue
  */
 @CacheableTask
 internal abstract class GitPreCommitHookPathRefreshTask : DefaultTask() {
+
+	companion object {
+
+		private const val TASK_NAME: String = "refreshGitPreCommitHookPath"
+
+		fun registerIn(
+			project: Project,
+			groupName: String,
+		) {
+			project.tasks.register<GitPreCommitHookPathRefreshTask>(TASK_NAME) {
+				this@register.group = groupName
+			}
+		}
+
+		@CheckReturnValue
+		fun getFrom(project: Project): TaskProvider<GitPreCommitHookPathRefreshTask> {
+			return project.tasks.named<GitPreCommitHookPathRefreshTask>(TASK_NAME)
+		}
+	}
 
 	init {
 		this.description = "(internal) Saves the path of the Git pre-commit hook file"

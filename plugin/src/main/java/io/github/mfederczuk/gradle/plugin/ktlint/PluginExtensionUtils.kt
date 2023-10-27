@@ -14,14 +14,11 @@ internal object PluginExtensionUtils {
 
 	const val EXTENSION_NAME: String = "ktlint"
 
-	@CheckReturnValue
-	fun createExtension(project: Project): KtlintPluginExtension {
+	fun createExtension(project: Project) {
 		val extension: KtlintPluginExtension = project.extensions.create<KtlintPluginExtension>(name = EXTENSION_NAME)
 
 		extension.experimental.convention(false)
 		extension.installGitPreCommitHookBeforeBuild.convention(false)
-
-		return extension
 	}
 
 	@CheckReturnValue

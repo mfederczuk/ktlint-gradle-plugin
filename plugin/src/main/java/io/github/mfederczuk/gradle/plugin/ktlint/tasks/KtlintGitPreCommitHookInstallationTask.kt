@@ -5,24 +5,32 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
+import io.github.mfederczuk.gradle.plugin.ktlint.PluginExtensionUtils
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfiguration
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
+import io.github.mfederczuk.gradle.plugin.ktlint.resolveKtlintClasspathJarFilesFromVersion
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import net.swiftzer.semver.SemVer
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
+import org.gradle.api.Project
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.nio.file.Path
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import java.util.jar.Manifest
@@ -31,36 +39,106 @@ import javax.annotation.CheckReturnValue
 @CacheableTask
 internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
-	private companion object {
-		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_FORMAT: String =
+	companion object {
+
+		private const val TASK_NAME: String = "installKtlintGitPreCommitHook"
+
+		private const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_FORMAT: String =
 			"/io/github/mfederczuk/gradle/plugin/ktlint/git/hooks/%s/pre-commit.template.sh"
 
-		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS = "windows"
-		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER = "other"
-	}
+		private const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS = "windows"
+		private const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER = "other"
 
-	init {
-		this.description = "Installs the ktlint Git pre-commit hook"
+		fun registerIn(
+			project: Project,
+			groupName: String,
+		) {
+			project.tasks.register<KtlintGitPreCommitHookInstallationTask>(TASK_NAME) {
+				this@register.group = groupName
+			}
+		}
+
+		@CheckReturnValue
+		fun getFrom(project: Project): KtlintGitPreCommitHookInstallationTask {
+			val task: Any? = project.tasks.findByName(TASK_NAME)
+
+			checkNotNull(task) {
+				"Task with name \"$TASK_NAME\" not found in $project".internalErrorMsg
+			}
+
+			check(task is KtlintGitPreCommitHookInstallationTask) {
+				"Task with name \"$TASK_NAME\" in $project" +
+					" is not of type ${KtlintGitPreCommitHookInstallationTask::class.java}".internalErrorMsg
+			}
+
+			return task
+		}
 	}
 
 	@get:InputFiles
 	@get:Classpath
-	abstract val ktlintClasspathJarFiles: Property<Iterable<File>>
+	val ktlintClasspathJarFiles: Provider<Iterable<File>>
 
 	@get:Input
-	abstract val codeStyle: Property<CodeStyle>
+	val codeStyle: Provider<CodeStyle>
 
 	@get:Input
-	abstract val errorLimit: Property<ErrorLimit>
+	val errorLimit: Provider<ErrorLimit>
 
 	@get:Input
-	abstract val experimentalRulesEnabled: Property<Boolean>
+	val experimentalRulesEnabled: Provider<Boolean>
 
 	@get:Input
-	abstract val ktlintVersion: Property<String>
+	val ktlintVersion: Provider<String>
 
 	@get:OutputFile
-	abstract val gitPreCommitHookFile: RegularFileProperty
+	val gitPreCommitHookFile: Provider<RegularFile>
+
+	init {
+		this.description = "Installs the ktlint Git pre-commit hook"
+
+		val gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask> =
+			GitPreCommitHookPathRefreshTask.getFrom(this.project)
+
+		this.dependsOn(gitPreCommitHookPathRefreshTaskProvider)
+
+		// region inputs
+
+		val configurationProvider: Provider<PluginConfiguration> = PluginExtensionUtils.getExtension(this.project)
+			.toConfiguration(this.project.providers)
+
+		this.ktlintClasspathJarFiles = configurationProvider
+			.map { configuration: PluginConfiguration ->
+				resolveKtlintClasspathJarFilesFromVersion(
+					configuration.ktlintVersion,
+					dependencyHandler = this.project.dependencies,
+					configurationContainer = this.project.configurations,
+				)
+			}
+
+		this.codeStyle = configurationProvider
+			.map(PluginConfiguration::codeStyle)
+
+		this.errorLimit = configurationProvider
+			.map(PluginConfiguration::errorLimit)
+
+		this.experimentalRulesEnabled = configurationProvider
+			.map(PluginConfiguration::experimentalRulesEnabled)
+
+		this.ktlintVersion = configurationProvider
+			.map { configuration: PluginConfiguration ->
+				configuration.ktlintVersion.toString()
+			}
+
+		// endregion
+
+		this.gitPreCommitHookFile = gitPreCommitHookPathRefreshTaskProvider
+			.flatMap { gitPreCommitHookPathRefreshTask: GitPreCommitHookPathRefreshTask ->
+				gitPreCommitHookPathRefreshTask.getHookFile(this.project.providers)
+			}
+			.map(Path::toFile)
+			.let(this.project.layout::file)
+	}
 
 	@TaskAction
 	fun installKtlintGitPreCommitHook() {
