@@ -11,7 +11,6 @@ import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfigurati
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.GitPreCommitHookPathRefreshTask
 import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintGitPreCommitHookInstallationTask
-import io.github.mfederczuk.gradle.plugin.ktlint.utils.getCurrentWorkingDirectoryPath
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import net.swiftzer.semver.SemVer
 import org.gradle.api.Plugin
@@ -76,7 +75,6 @@ public class KtlintPlugin : Plugin<Project> {
 			this@register.group = TASK_GROUP_NAME
 
 			this@register.gitDirEnvironmentVariableValue.set(project.provider { System.getenv("GIT_DIR").orEmpty() })
-			this@register.workingDirectoryPath.set(project.provider { getCurrentWorkingDirectoryPath().toString() })
 			this@register.currentDate.set(project.provider { LocalDate.now().toString() })
 
 			val hookPathOutputFileProvider: Provider<RegularFile> = project.layout.buildDirectory

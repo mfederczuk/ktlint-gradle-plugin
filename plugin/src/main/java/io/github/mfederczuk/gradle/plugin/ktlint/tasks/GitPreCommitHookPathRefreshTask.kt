@@ -41,10 +41,6 @@ internal abstract class GitPreCommitHookPathRefreshTask : DefaultTask() {
 	@get:Input
 	abstract val gitDirEnvironmentVariableValue: Property<String>
 
-	/** Refresh the hook path if the working directory changes */
-	@get:Input
-	abstract val workingDirectoryPath: Property<String>
-
 	/** Refresh the hook path every new day */
 	@get:Input
 	abstract val currentDate: Property<String>
@@ -55,7 +51,6 @@ internal abstract class GitPreCommitHookPathRefreshTask : DefaultTask() {
 	@TaskAction
 	fun refreshGitPreCommitHookPath() {
 		this.gitDirEnvironmentVariableValue.get()
-		this.workingDirectoryPath.get()
 		this.currentDate.get()
 		val hookPathOutputFile: File = this.hookPathOutputFile.asFile.get()
 
