@@ -19,12 +19,8 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.nio.file.Path
@@ -34,18 +30,12 @@ import javax.annotation.CheckReturnValue
 public class KtlintPlugin : Plugin<Project> {
 
 	private companion object {
-		const val EXTENSION_NAME: String = "ktlint"
-
 		const val TASK_GROUP_NAME: String = "ktlint"
 		const val KTLINT_GIT_PRE_COMMIT_HOOK_INSTALLATION_TASK_NAME: String = "installKtlintGitPreCommitHook"
 	}
 
 	override fun apply(project: Project) {
-		val configurationProvider: Provider<PluginConfiguration> = this
-			.createConfiguration(
-				extensionContainer = project.extensions,
-				providerFactory = project.providers,
-			)
+		val configurationProvider: Provider<PluginConfiguration> = this.createConfiguration(project)
 
 		val ktlintClasspathJarFilesProvider: Provider<Iterable<File>> = configurationProvider
 			.map { configuration: PluginConfiguration ->
@@ -75,22 +65,9 @@ public class KtlintPlugin : Plugin<Project> {
 	}
 
 	@CheckReturnValue
-	private fun createConfiguration(
-		extensionContainer: ExtensionContainer,
-		providerFactory: ProviderFactory,
-	): Provider<PluginConfiguration> {
-		return this.createExtension(extensionContainer)
-			.toConfiguration(providerFactory)
-	}
-
-	@CheckReturnValue
-	private fun createExtension(extensionContainer: ExtensionContainer): KtlintPluginExtension {
-		val extension: KtlintPluginExtension = extensionContainer.create<KtlintPluginExtension>(name = EXTENSION_NAME)
-
-		extension.experimental.convention(false)
-		extension.installGitPreCommitHookBeforeBuild.convention(false)
-
-		return extension
+	private fun createConfiguration(project: Project): Provider<PluginConfiguration> {
+		return PluginExtensionUtils.createExtension(project)
+			.toConfiguration(project.providers)
 	}
 
 	@CheckReturnValue
@@ -147,10 +124,7 @@ public class KtlintPlugin : Plugin<Project> {
 	// region afterEvaluate
 
 	private fun afterEvaluate(project: Project) {
-		val extension: KtlintPluginExtension? = project.extensions.findByType<KtlintPluginExtension>()
-		checkNotNull(extension) {
-			"Extension of type ${KtlintPluginExtension::class.java.name} not found in $project".internalErrorMsg
-		}
+		val extension: KtlintPluginExtension = PluginExtensionUtils.getExtension(project)
 
 		this.setupAutomaticGitPreCommitHookInstallation(project, extension)
 	}
@@ -169,8 +143,8 @@ public class KtlintPlugin : Plugin<Project> {
 		checkNotNull(targetTask) {
 			"Tasks with name \"preBuild\" or \"build\" not found in $project.\n" +
 				"If the plugin has been applied to a root project, either set " +
-				"`$EXTENSION_NAME.${extension::installGitPreCommitHookBeforeBuild.name}` to `false`, or " +
-				"apply the plugin to a non-root project"
+				"`${PluginExtensionUtils.EXTENSION_NAME}.${extension::installGitPreCommitHookBeforeBuild.name}` " +
+				"to `false`, or apply the plugin to a non-root project"
 		}
 
 		val gitPreCommitHookInstallationTask: Task? =
