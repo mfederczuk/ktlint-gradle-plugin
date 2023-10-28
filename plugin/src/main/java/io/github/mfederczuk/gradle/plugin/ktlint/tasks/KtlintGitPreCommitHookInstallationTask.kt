@@ -183,24 +183,21 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 			replace placeholder "HOOK_INSTALLATION_TASK_NAME" ofType quotedString with
 				this@KtlintGitPreCommitHookInstallationTask.name
 
-			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" ofType quotedString with
+			replace placeholder "KTLINT_CONFIGURED_ARGS" ofType args with buildList {
 				when (codeStyle) {
-					is CodeStyle.Default -> ""
-					is CodeStyle.Specific -> "--code-style=${codeStyle.name}"
+					is CodeStyle.Default -> Unit
+					is CodeStyle.Specific -> this@buildList.add("--code-style=${codeStyle.name}")
 				}
 
-			replace placeholder "KTLINT_LIMIT_OPT_ARG" ofType quotedString with
 				when (errorLimit) {
-					is ErrorLimit.None -> ""
-					is ErrorLimit.Max -> "--limit=${errorLimit.n}"
+					is ErrorLimit.None -> Unit
+					is ErrorLimit.Max -> this@buildList.add("--limit=${errorLimit.n}")
 				}
 
-			replace placeholder "KTLINT_EXPERIMENTAL_OPT_ARG" ofType quotedString with
 				if (experimentalRulesEnabled) {
-					"--experimental"
-				} else {
-					""
+					this@buildList.add("--experimental")
 				}
+			}
 
 			replace placeholder "KTLINT_VERSION" ofType quotedString with ktlintVersion.toString()
 		}

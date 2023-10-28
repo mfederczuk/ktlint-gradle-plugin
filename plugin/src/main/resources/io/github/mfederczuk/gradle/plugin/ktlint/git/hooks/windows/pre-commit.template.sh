@@ -178,21 +178,12 @@ if $stdin_supports_color; then
 fi
 readonly ktlint_color_opt_arg
 
-ktlint_code_style_opt_arg=//KTLINT_CODE_STYLE_OPT_ARG::quoted_string//
-readonly ktlint_code_style_opt_arg
-
 ktlint_relative_opt_arg='--relative'
 if $using_intellij_idea_terminal; then
 	# print absolute pathnames if executed via IntelliJ IDEA so that they become clickable
 	ktlint_relative_opt_arg=''
 fi
 readonly ktlint_relative_opt_arg
-
-ktlint_limit_opt_arg=//KTLINT_LIMIT_OPT_ARG::quoted_string//
-readonly ktlint_limit_opt_arg
-
-ktlint_experimental_opt_arg=//KTLINT_EXPERIMENTAL_OPT_ARG::quoted_string//
-readonly ktlint_experimental_opt_arg
 
 git_apply --reverse -- "$unstaged_changes_patch_file_pathname"
 
@@ -201,10 +192,8 @@ printf 'Running ktlint (v%s)...\n' //KTLINT_VERSION::quoted_string// >&2
 exc=0
 java -classpath "$ktlint_classpath" "$ktlint_main_class_name" \
      $ktlint_color_opt_arg \
-     $ktlint_code_style_opt_arg \
      $ktlint_relative_opt_arg \
-     $ktlint_limit_opt_arg \
-     $ktlint_experimental_opt_arg \
+     //KTLINT_CONFIGURED_ARGS::args// \
      --patterns-from-stdin='' < "$staged_kotlin_filename_list_file_pathname" ||
 	exc=$?
 
