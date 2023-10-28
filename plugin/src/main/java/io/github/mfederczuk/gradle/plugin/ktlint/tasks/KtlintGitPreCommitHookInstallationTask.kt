@@ -10,10 +10,10 @@ import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
-import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
-import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
 import io.github.mfederczuk.gradle.plugin.ktlint.resolveKtlintClasspathJarFilesFromVersion
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
+import io.github.mfederczuk.shtemplate.ShTemplateEngine
+import io.github.mfederczuk.shtemplate.buildShTemplateEngine
 import net.swiftzer.semver.SemVer
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -171,38 +171,38 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		experimentalRulesEnabled: Boolean,
 		ktlintVersion: SemVer,
 	): String {
-		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
-			replace placeholder "GENERATED_DATETIME" with generatedDateTime
+		val engine: ShTemplateEngine = buildShTemplateEngine {
+			replace placeholder "GENERATED_DATETIME" ofType commentText with generatedDateTime
 
-			replace placeholder "KTLINT_CLASSPATH" with run {
+			replace placeholder "KTLINT_CLASSPATH" ofType quotedString with
 				ktlintClasspathJarFiles.joinToString(separator = File.pathSeparator)
-			}
 
-			replace placeholder "KTLINT_MAIN_CLASS_NAME" with run {
+			replace placeholder "KTLINT_MAIN_CLASS_NAME" ofType quotedString with
 				ktlintClasspathJarFiles.first().extractJarFileMainClassName()
-			}
 
-			replace placeholder "HOOK_INSTALLATION_TASK_NAME" with this@KtlintGitPreCommitHookInstallationTask.name
+			replace placeholder "HOOK_INSTALLATION_TASK_NAME" ofType quotedString with
+				this@KtlintGitPreCommitHookInstallationTask.name
 
-			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" with when (codeStyle) {
-				is CodeStyle.Default -> ""
-				is CodeStyle.Specific -> "--code-style=${codeStyle.name}"
-			}
+			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" ofType quotedString with
+				when (codeStyle) {
+					is CodeStyle.Default -> ""
+					is CodeStyle.Specific -> "--code-style=${codeStyle.name}"
+				}
 
-			replace placeholder "KTLINT_LIMIT_OPT_ARG" with when (errorLimit) {
-				is ErrorLimit.None -> ""
-				is ErrorLimit.Max -> "--limit=${errorLimit.n}"
-			}
+			replace placeholder "KTLINT_LIMIT_OPT_ARG" ofType quotedString with
+				when (errorLimit) {
+					is ErrorLimit.None -> ""
+					is ErrorLimit.Max -> "--limit=${errorLimit.n}"
+				}
 
-			replace placeholder "KTLINT_EXPERIMENTAL_OPT_ARG" with run {
+			replace placeholder "KTLINT_EXPERIMENTAL_OPT_ARG" ofType quotedString with
 				if (experimentalRulesEnabled) {
 					"--experimental"
 				} else {
 					""
 				}
-			}
 
-			replace placeholder "KTLINT_VERSION" with ktlintVersion.toString()
+			replace placeholder "KTLINT_VERSION" ofType quotedString with ktlintVersion.toString()
 		}
 
 		val hookScriptTemplate: String = this.loadHookScriptTemplate()

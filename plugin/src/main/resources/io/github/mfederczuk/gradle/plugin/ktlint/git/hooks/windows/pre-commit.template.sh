@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
 
 # <https://github.com/pinterest/ktlint> custom pre-commit hook for Windows
-# Generated at //GENERATED_DATETIME::comment//
+# Generated at //GENERATED_DATETIME::comment_text//
 # DO NOT EDIT!
 
 #region preamble
