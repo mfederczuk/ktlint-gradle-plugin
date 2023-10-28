@@ -14,7 +14,7 @@ ktlint {
 	version = "1.0.1"
 	// codeStyle = AndroidStudio
 	// limit = 5
-	// enableExperimentalRules()
+	// enableExperimental()
 	installGitPreCommitHookBeforeBuild = true
 }
 
