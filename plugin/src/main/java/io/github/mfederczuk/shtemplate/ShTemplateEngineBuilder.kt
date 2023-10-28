@@ -19,6 +19,13 @@ internal class ShTemplateEngineBuilder {
 		this.replacementValueSuppliers[placeholderName] = ReplacementValueSupplier.QuotedString { string }
 	}
 
+	fun args(
+		placeholderName: PlaceholderName,
+		args: List<String>,
+	) {
+		this.replacementValueSuppliers[placeholderName] = ReplacementValueSupplier.Args { args }
+	}
+
 	fun commentTextGeneratedDateTime(placeholderName: PlaceholderName) {
 		this.replacementValueSuppliers[placeholderName] = ReplacementValueSupplier
 			.CommentText { generatedDateTime: ZonedDateTime ->

@@ -8,6 +8,7 @@ import javax.annotation.CheckReturnValue
 
 internal enum class PlaceholderType(private val identifier: String) {
 	QUOTED_STRING("quoted_string"),
+	ARGS("args"),
 	COMMENT_TEXT("comment_text"),
 	;
 

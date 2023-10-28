@@ -58,6 +58,19 @@ internal class ShTemplateEngine(
 				replacementValueSupplier.getString().quotedForSh()
 			}
 
+			PlaceholderType.ARGS -> {
+				check(replacementValueSupplier is ReplacementValueSupplier.Args) {
+					"Registered replacement for placeholder with name \"${placeholder.name}\" is of the wrong type"
+				}
+
+				val leadingWhitespace: String = LEADING_WHITESPACE_PATTERN.matchAt(line, index = 0)?.value.orEmpty()
+				replacementValueSupplier.getArgs()
+					.joinToString(
+						separator = " \\\n$leadingWhitespace",
+						transform = String::quotedForSh,
+					)
+			}
+
 			PlaceholderType.COMMENT_TEXT -> {
 				check(replacementValueSupplier is ReplacementValueSupplier.CommentText) {
 					"Registered replacement for placeholder with name \"${placeholder.name}\" is of the wrong type"

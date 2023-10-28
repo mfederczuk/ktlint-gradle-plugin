@@ -18,6 +18,8 @@ internal class ShTemplateEngineBuilderDsl(builder: ShTemplateEngineBuilder) {
 
 			object QuotedStringType
 
+			object ArgsType
+
 			object CommentTextType
 
 			class OfTypeQuotedString(
@@ -27,6 +29,16 @@ internal class ShTemplateEngineBuilderDsl(builder: ShTemplateEngineBuilder) {
 
 				infix fun with(string: String) {
 					this.builder.quotedString(this.placeholderName, string)
+				}
+			}
+
+			class OfTypeArgs(
+				private val builder: ShTemplateEngineBuilder,
+				private val placeholderName: PlaceholderName,
+			) {
+
+				infix fun with(args: List<String>) {
+					this.builder.args(this.placeholderName, args)
 				}
 			}
 
@@ -51,6 +63,12 @@ internal class ShTemplateEngineBuilderDsl(builder: ShTemplateEngineBuilder) {
 			}
 
 			infix fun ofType(
+				@Suppress("UNUSED_PARAMETER") type: ArgsType,
+			): OfTypeArgs {
+				return OfTypeArgs(this.builder, this.name)
+			}
+
+			infix fun ofType(
 				@Suppress("UNUSED_PARAMETER") type: CommentTextType,
 			): OfTypeCommentText {
 				return OfTypeCommentText(this.builder, this.name)
@@ -65,6 +83,7 @@ internal class ShTemplateEngineBuilderDsl(builder: ShTemplateEngineBuilder) {
 	val replace: Replace = Replace(builder)
 
 	val quotedString: Replace.Placeholder.QuotedStringType = Replace.Placeholder.QuotedStringType
+	val args: Replace.Placeholder.ArgsType = Replace.Placeholder.ArgsType
 	val commentText: Replace.Placeholder.CommentTextType = Replace.Placeholder.CommentTextType
 
 	val generatedDateTime: Replace.Placeholder.OfTypeCommentText.GeneratedDateTime =

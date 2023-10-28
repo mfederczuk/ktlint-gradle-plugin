@@ -17,6 +17,13 @@ internal sealed interface ReplacementValueSupplier {
 	}
 
 	@FunctionalInterface
+	fun interface Args : ReplacementValueSupplier {
+
+		@CheckReturnValue
+		fun getArgs(): List<String>
+	}
+
+	@FunctionalInterface
 	fun interface CommentText : ReplacementValueSupplier {
 
 		@CheckReturnValue
