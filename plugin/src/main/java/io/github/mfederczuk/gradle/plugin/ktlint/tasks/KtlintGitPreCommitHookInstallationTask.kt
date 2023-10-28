@@ -5,12 +5,12 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
+import io.github.mfederczuk.gradle.plugin.ktlint.KtlintUtils
 import io.github.mfederczuk.gradle.plugin.ktlint.PluginExtensionUtils
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
-import io.github.mfederczuk.gradle.plugin.ktlint.resolveKtlintClasspathJarFilesFromVersion
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import io.github.mfederczuk.shtemplate.ShTemplateEngine
 import io.github.mfederczuk.shtemplate.buildShTemplateEngine
@@ -109,11 +109,7 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
 		this.ktlintClasspathJarFiles = configurationProvider
 			.map { configuration: PluginConfiguration ->
-				resolveKtlintClasspathJarFilesFromVersion(
-					configuration.ktlintVersion,
-					dependencyHandler = this.project.dependencies,
-					configurationContainer = this.project.configurations,
-				)
+				KtlintUtils.resolveKtlintClasspath(configuration.ktlintVersion, this.project)
 			}
 
 		this.codeStyle = configurationProvider

@@ -1,11 +1,11 @@
 package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
+import io.github.mfederczuk.gradle.plugin.ktlint.KtlintUtils
 import io.github.mfederczuk.gradle.plugin.ktlint.PluginExtensionUtils
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
-import io.github.mfederczuk.gradle.plugin.ktlint.resolveKtlintClasspathJarFilesFromVersion
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -75,13 +75,7 @@ public abstract class KtlintFormattingTask : DefaultTask() {
 
 		this.ktlintClasspath = configurationProvider
 			.map { configuration: PluginConfiguration ->
-				val fileSet: Set<File> =
-					resolveKtlintClasspathJarFilesFromVersion(
-						configuration.ktlintVersion,
-						dependencyHandler = this.project.dependencies,
-						configurationContainer = this.project.configurations,
-					)
-				this.project.files(*(fileSet.toTypedArray()))
+				KtlintUtils.resolveKtlintClasspath(configuration.ktlintVersion, this.project)
 			}
 
 		this.codeStyle = configurationProvider
