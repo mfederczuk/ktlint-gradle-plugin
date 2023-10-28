@@ -194,11 +194,9 @@ readonly ktlint_limit_opt_arg
 ktlint_experimental_opt_arg=//KTLINT_EXPERIMENTAL_OPT_ARG::quoted_string//
 readonly ktlint_experimental_opt_arg
 
-ktlint_version=//KTLINT_VERSION::quoted_string//
-readonly ktlint_version
-
 git_apply --reverse -- "$unstaged_changes_patch_file_pathname"
-printf 'Running ktlint (v%s)...\n' "$ktlint_version" >&2
+
+printf 'Running ktlint (v%s)...\n' //KTLINT_VERSION::quoted_string// >&2
 
 exc=0
 java -classpath "$ktlint_classpath" "$ktlint_main_class_name" \
