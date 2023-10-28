@@ -8,18 +8,21 @@ package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 import io.github.mfederczuk.gradle.plugin.ktlint.GitService
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.nio.file.Path
+import java.time.LocalDate
 import javax.annotation.CheckReturnValue
 
 /**
@@ -30,30 +33,54 @@ import javax.annotation.CheckReturnValue
 @CacheableTask
 internal abstract class GitPreCommitHookPathRefreshTask : DefaultTask() {
 
+	companion object {
+
+		private const val TASK_NAME: String = "refreshGitPreCommitHookPath"
+
+		fun registerIn(
+			project: Project,
+			groupName: String,
+		) {
+			project.tasks.register<GitPreCommitHookPathRefreshTask>(TASK_NAME) {
+				this@register.group = groupName
+			}
+		}
+
+		@CheckReturnValue
+		fun getFrom(project: Project): TaskProvider<GitPreCommitHookPathRefreshTask> {
+			return project.tasks.named<GitPreCommitHookPathRefreshTask>(TASK_NAME)
+		}
+	}
+
+	init {
+		this.description = "(internal) Saves the path of the Git pre-commit hook file"
+	}
+
 	@get:Nested
 	abstract val gitService: GitService
 
-	/** Refresh the hook path if the environment variable `$GIT_DIR` changes */
-	@get:Input
-	abstract val gitDirEnvironmentVariableValue: Property<String>
+	init {
+		// refresh the hook path if the environment variable `$GIT_DIR` changes
+		val gitDirEnvVarProvider: Provider<String> = this.project.providers.environmentVariable("GIT_DIR")
+			.orElse("")
+		this.inputs.property("gitDirEnvVar", gitDirEnvVarProvider)
 
-	/** Refresh the hook path if the working directory changes */
-	@get:Input
-	abstract val workingDirectoryPath: Property<String>
-
-	/** Refresh the hook path every new day */
-	@get:Input
-	abstract val currentDate: Property<String>
+		// refresh the hook path every new day
+		// note: for some reason this only works if the gradle task is executed via IntelliJ IDEA.
+		//       it doesn't work if the gradle wrapper script is used
+		this.inputs.property("currentDate", this.project.provider { LocalDate.now().toString() })
+	}
 
 	@get:OutputFile
-	abstract val hookPathOutputFile: RegularFileProperty
+	val hookPathOutputFile: Provider<RegularFile> = this.project.layout.buildDirectory
+		.dir("git")
+		.map { dir: Directory ->
+			dir.file("preCommitPath.txt")
+		}
 
 	@TaskAction
 	fun refreshGitPreCommitHookPath() {
-		this.gitDirEnvironmentVariableValue.get()
-		this.workingDirectoryPath.get()
-		this.currentDate.get()
-		val hookPathOutputFile: File = this.hookPathOutputFile.asFile.get()
+		val hookPathOutputFile: File = this.hookPathOutputFile.get().asFile
 
 		val hookFilePath: Path = this.gitService.determinePreCommitHookFilePath()
 

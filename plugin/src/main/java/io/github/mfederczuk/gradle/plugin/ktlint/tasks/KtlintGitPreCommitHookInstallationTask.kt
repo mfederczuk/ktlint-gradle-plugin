@@ -5,24 +5,32 @@
 
 package io.github.mfederczuk.gradle.plugin.ktlint.tasks
 
-import io.github.mfederczuk.gradle.plugin.ktlint.models.CodeStyle
-import io.github.mfederczuk.gradle.plugin.ktlint.models.ErrorLimit
-import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.PosixShTemplateEngine
-import io.github.mfederczuk.gradle.plugin.ktlint.posixshtemplateengine.buildPosixShTemplateEngine
+import io.github.mfederczuk.gradle.plugin.ktlint.KtlintUtils
+import io.github.mfederczuk.gradle.plugin.ktlint.PluginExtensionUtils
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.CodeStyle
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.ErrorLimit
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.PluginConfiguration
+import io.github.mfederczuk.gradle.plugin.ktlint.configuration.toConfiguration
 import io.github.mfederczuk.gradle.plugin.ktlint.utils.internalErrorMsg
+import io.github.mfederczuk.shtemplate.ShTemplateEngine
+import io.github.mfederczuk.shtemplate.buildShTemplateEngine
 import net.swiftzer.semver.SemVer
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
+import org.gradle.api.Project
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.register
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.nio.file.Path
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import java.util.jar.Manifest
@@ -31,40 +39,106 @@ import javax.annotation.CheckReturnValue
 @CacheableTask
 internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 
-	private companion object {
-		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_FORMAT: String =
+	companion object {
+
+		private const val TASK_NAME: String = "installKtlintGitPreCommitHook"
+
+		private const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_FORMAT: String =
 			"/io/github/mfederczuk/gradle/plugin/ktlint/git/hooks/%s/pre-commit.template.sh"
 
-		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS = "windows"
-		const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER = "other"
+		private const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_WINDOWS = "windows"
+		private const val HOOK_SCRIPT_TEMPLATE_RESOURCE_PATH_PLATFORM_DIR_COMPONENT_OTHER = "other"
+
+		fun registerIn(
+			project: Project,
+			groupName: String,
+		) {
+			project.tasks.register<KtlintGitPreCommitHookInstallationTask>(TASK_NAME) {
+				this@register.group = groupName
+			}
+		}
+
+		@CheckReturnValue
+		fun getFrom(project: Project): KtlintGitPreCommitHookInstallationTask {
+			val task: Any? = project.tasks.findByName(TASK_NAME)
+
+			checkNotNull(task) {
+				"Task with name \"$TASK_NAME\" not found in $project".internalErrorMsg
+			}
+
+			check(task is KtlintGitPreCommitHookInstallationTask) {
+				"Task with name \"$TASK_NAME\" in $project" +
+					" is not of type ${KtlintGitPreCommitHookInstallationTask::class.java}".internalErrorMsg
+			}
+
+			return task
+		}
 	}
 
 	@get:InputFiles
 	@get:Classpath
-	abstract val ktlintClasspathJarFiles: Property<Iterable<File>>
+	val ktlintClasspathJarFiles: Provider<Iterable<File>>
 
 	@get:Input
-	abstract val taskName: Property<String>
+	val codeStyle: Provider<CodeStyle>
 
 	@get:Input
-	abstract val codeStyle: Property<CodeStyle>
+	val errorLimit: Provider<ErrorLimit>
 
 	@get:Input
-	abstract val errorLimit: Property<ErrorLimit>
+	val experimentalRulesEnabled: Provider<Boolean>
 
 	@get:Input
-	abstract val experimentalRulesEnabled: Property<Boolean>
-
-	@get:Input
-	abstract val ktlintVersion: Property<String>
+	val ktlintVersion: Provider<String>
 
 	@get:OutputFile
-	abstract val gitPreCommitHookFile: RegularFileProperty
+	val gitPreCommitHookFile: Provider<RegularFile>
+
+	init {
+		this.description = "Installs the ktlint Git pre-commit hook"
+
+		val gitPreCommitHookPathRefreshTaskProvider: TaskProvider<GitPreCommitHookPathRefreshTask> =
+			GitPreCommitHookPathRefreshTask.getFrom(this.project)
+
+		this.dependsOn(gitPreCommitHookPathRefreshTaskProvider)
+
+		// region inputs
+
+		val configurationProvider: Provider<PluginConfiguration> = PluginExtensionUtils.getExtension(this.project)
+			.toConfiguration(this.project.providers)
+
+		this.ktlintClasspathJarFiles = configurationProvider
+			.map { configuration: PluginConfiguration ->
+				KtlintUtils.resolveKtlintClasspath(configuration.ktlintVersion, this.project)
+			}
+
+		this.codeStyle = configurationProvider
+			.map(PluginConfiguration::codeStyle)
+
+		this.errorLimit = configurationProvider
+			.map(PluginConfiguration::errorLimit)
+
+		this.experimentalRulesEnabled = configurationProvider
+			.map(PluginConfiguration::experimentalRulesEnabled)
+
+		this.ktlintVersion = configurationProvider
+			.map { configuration: PluginConfiguration ->
+				configuration.ktlintVersion.toString()
+			}
+
+		// endregion
+
+		this.gitPreCommitHookFile = gitPreCommitHookPathRefreshTaskProvider
+			.flatMap { gitPreCommitHookPathRefreshTask: GitPreCommitHookPathRefreshTask ->
+				gitPreCommitHookPathRefreshTask.getHookFile(this.project.providers)
+			}
+			.map(Path::toFile)
+			.let(this.project.layout::file)
+	}
 
 	@TaskAction
 	fun installKtlintGitPreCommitHook() {
 		val ktlintClasspathJarFiles: Iterable<File> = this.ktlintClasspathJarFiles.get()
-		val taskName: String = this.taskName.get()
 		val codeStyle: CodeStyle = this.codeStyle.get()
 		val errorLimit: ErrorLimit = this.errorLimit.get()
 		val experimentalRulesEnabled: Boolean = this.experimentalRulesEnabled.get()
@@ -74,7 +148,6 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 		val hookScript: String = this
 			.loadHookScript(
 				ktlintClasspathJarFiles.toList(),
-				taskName,
 				codeStyle,
 				errorLimit,
 				experimentalRulesEnabled,
@@ -89,44 +162,40 @@ internal abstract class KtlintGitPreCommitHookInstallationTask : DefaultTask() {
 	@CheckReturnValue
 	private fun loadHookScript(
 		ktlintClasspathJarFiles: List<File>,
-		taskName: String,
 		codeStyle: CodeStyle,
 		errorLimit: ErrorLimit,
 		experimentalRulesEnabled: Boolean,
 		ktlintVersion: SemVer,
 	): String {
-		val engine: PosixShTemplateEngine = buildPosixShTemplateEngine {
-			replace placeholder "GENERATED_DATETIME" with generatedDateTime
+		val engine: ShTemplateEngine = buildShTemplateEngine {
+			replace placeholder "GENERATED_DATETIME" ofType commentText with generatedDateTime
 
-			replace placeholder "KTLINT_CLASSPATH" with run {
+			replace placeholder "KTLINT_CLASSPATH" ofType quotedString with
 				ktlintClasspathJarFiles.joinToString(separator = File.pathSeparator)
-			}
 
-			replace placeholder "KTLINT_MAIN_CLASS_NAME" with run {
+			replace placeholder "KTLINT_MAIN_CLASS_NAME" ofType quotedString with
 				ktlintClasspathJarFiles.first().extractJarFileMainClassName()
-			}
 
-			replace placeholder "HOOK_INSTALLATION_TASK_NAME" with taskName
+			replace placeholder "HOOK_INSTALLATION_TASK_NAME" ofType quotedString with
+				this@KtlintGitPreCommitHookInstallationTask.name
 
-			replace placeholder "KTLINT_CODE_STYLE_OPT_ARG" with when (codeStyle) {
-				is CodeStyle.Default -> ""
-				is CodeStyle.Specific -> "--code-style=${codeStyle.name}"
-			}
+			replace placeholder "KTLINT_CONFIGURED_ARGS" ofType args with buildList {
+				when (codeStyle) {
+					is CodeStyle.Default -> Unit
+					is CodeStyle.Specific -> this@buildList.add("--code-style=${codeStyle.name}")
+				}
 
-			replace placeholder "KTLINT_LIMIT_OPT_ARG" with when (errorLimit) {
-				is ErrorLimit.None -> ""
-				is ErrorLimit.Max -> "--limit=${errorLimit.n}"
-			}
+				when (errorLimit) {
+					is ErrorLimit.None -> Unit
+					is ErrorLimit.Max -> this@buildList.add("--limit=${errorLimit.n}")
+				}
 
-			replace placeholder "KTLINT_EXPERIMENTAL_OPT_ARG" with run {
 				if (experimentalRulesEnabled) {
-					"--experimental"
-				} else {
-					""
+					this@buildList.add("--experimental")
 				}
 			}
 
-			replace placeholder "KTLINT_VERSION" with ktlintVersion.toString()
+			replace placeholder "KTLINT_VERSION" ofType quotedString with ktlintVersion.toString()
 		}
 
 		val hookScriptTemplate: String = this.loadHookScriptTemplate()
