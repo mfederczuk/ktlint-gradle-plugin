@@ -42,7 +42,6 @@ fi
 #  * order of environment variables
 #  * final fallback is more complicated (includes username)
 #  * slashes to backslashes
-#  * different filename; converted kebab-case to PascalCase
 base_tmp_dir_pathname="${TEMP:-"${TMP:-"${TMPDIR:-"${TEMPDIR:-"${TMP_DIR:-"${TEMP_DIR-}"}"}"}"}"}"
 base_tmp_dir_pathname="${base_tmp_dir_pathname%"\\"}"
 
@@ -53,12 +52,11 @@ if [ -z "$base_tmp_dir_pathname" ]; then
 
 	unset -v username
 fi
-
+# END Windows-Changed
 readonly base_tmp_dir_pathname
 
-
+# Windows-Changed: slash to backslash & different filename; converted kebab-case to PascalCase
 process_tmp_dir_pathname="$base_tmp_dir_pathname\\KtlintGradlePlugin$$"
-# END Windows-Changed
 readonly process_tmp_dir_pathname
 
 remove_process_tmp_dir() {
@@ -83,11 +81,12 @@ git_apply() {
 	git apply --ignore-whitespace --whitespace=nowarn --allow-empty "$@"
 }
 
-# Windows-Changed: redirecting usages of `java` to `javaw`
+# BEGIN Windows-Changed: redirecting usages of `java` to `javaw`
 java() {
 	javaw "$@"
 }
 
+# END Windows-Changed
 #endregion
 
 #region generating unstaged changes patch
