@@ -41,6 +41,13 @@ is_absolute_pathname() {
 	test "${1#?:\\}" != "$1"
 }
 
+mkdirp_parent() {
+	# Windows-Changed: no need to preserve potential trailing newline character
+	set -- "$(dirname -- "$1")"
+
+	mkdir -p -- "$1"
+}
+
 #region setting up temporary directory
 
 # BEGIN Windows-Changed:
@@ -77,10 +84,8 @@ readonly process_tmp_dir_pathname
 
 remove_process_tmp_dir() {
 	# shellcheck disable=2317
-	rm -r -- "$process_tmp_dir_pathname"
+	rm -rf -- "$process_tmp_dir_pathname"
 }
-
-mkdir -p -- "$process_tmp_dir_pathname"
 
 trap remove_process_tmp_dir EXIT
 trap 'trap - EXIT; remove_process_tmp_dir' INT QUIT TERM
@@ -111,6 +116,8 @@ java() {
 unstaged_changes_patch_file_pathname="$process_tmp_dir_pathname\\UnstagedChanges.patch"
 readonly unstaged_changes_patch_file_pathname
 
+mkdirp_parent "$unstaged_changes_patch_file_pathname"
+
 git diff --patch --raw -z --color=never --full-index --binary \
          --output="$unstaged_changes_patch_file_pathname"
 
@@ -121,6 +128,8 @@ git diff --patch --raw -z --color=never --full-index --binary \
 # Windows-Changed: slash to backslash & different filename; converted kebab-case to PascalCase and added `dat` extension
 staged_kotlin_filename_list_file_pathname="$process_tmp_dir_pathname\\StagedKotlinFiles.dat"
 readonly staged_kotlin_filename_list_file_pathname
+
+mkdirp_parent "$staged_kotlin_filename_list_file_pathname"
 
 git diff --name-only -z --color=never --cached --relative \
          --output="$staged_kotlin_filename_list_file_pathname" \

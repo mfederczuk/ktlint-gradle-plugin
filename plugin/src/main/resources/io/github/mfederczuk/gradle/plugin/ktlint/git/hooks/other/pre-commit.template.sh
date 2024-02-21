@@ -44,6 +44,13 @@ is_absolute_pathname() {
 	test "${1#/}" != "$1"
 }
 
+mkdirp_parent() {
+	set -- "$(dirname -- "$1" && printf x)"
+	set -- "${1%"$(printf '\nx')"}"
+
+	mkdir -p -- "$1"
+}
+
 #region setting up temporary directory
 
 base_tmp_dir_pathname="${TMPDIR:-"${TMP:-"${TEMP:-"${TEMPDIR:-"${TMP_DIR:-"${TEMP_DIR:-"/tmp"}"}"}"}"}"}"
@@ -66,10 +73,8 @@ readonly process_tmp_dir_pathname
 
 remove_process_tmp_dir() {
 	# shellcheck disable=2317
-	rm -r -- "$process_tmp_dir_pathname"
+	rm -rf -- "$process_tmp_dir_pathname"
 }
-
-mkdir -p -- "$process_tmp_dir_pathname"
 
 trap remove_process_tmp_dir EXIT
 trap 'trap - EXIT; remove_process_tmp_dir' INT QUIT TERM
@@ -93,6 +98,8 @@ git_apply() {
 unstaged_changes_patch_file_pathname="$process_tmp_dir_pathname/unstaged-changes.patch"
 readonly unstaged_changes_patch_file_pathname
 
+mkdirp_parent "$unstaged_changes_patch_file_pathname"
+
 git diff --patch --raw -z --color=never --full-index --binary \
          --output="$unstaged_changes_patch_file_pathname"
 
@@ -102,6 +109,8 @@ git diff --patch --raw -z --color=never --full-index --binary \
 
 staged_kotlin_filename_list_file_pathname="$process_tmp_dir_pathname/staged-kotlin-files"
 readonly staged_kotlin_filename_list_file_pathname
+
+mkdirp_parent "$staged_kotlin_filename_list_file_pathname"
 
 git diff --name-only -z --color=never --cached --relative \
          --output="$staged_kotlin_filename_list_file_pathname" \
