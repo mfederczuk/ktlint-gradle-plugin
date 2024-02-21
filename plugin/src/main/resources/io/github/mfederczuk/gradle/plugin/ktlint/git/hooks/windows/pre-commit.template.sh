@@ -36,6 +36,23 @@ fi
 
 #endregion
 
+git() {
+	command git -c diff.noprefix=false --no-pager "$@"
+}
+
+#region bare repository check
+
+is_bare_repository="$(git rev-parse --is-bare-repository)"
+
+if [ "$is_bare_repository" = 'true' ]; then
+	printf '%s: repository is bare\n' "$argv0" >&2
+	exit 48
+fi
+
+unset -v is_bare_repository
+
+#endregion
+
 is_absolute_pathname() {
 	# Windows-Changed: different way to check for absolute pathname
 	test "${1#?:\\}" != "$1"
@@ -93,10 +110,6 @@ trap 'trap - EXIT; remove_process_tmp_dir' INT QUIT TERM
 #endregion
 
 #region functions
-
-git() {
-	command git -c diff.noprefix=false --no-pager "$@"
-}
 
 git_apply() {
 	git apply --ignore-whitespace --whitespace=nowarn --allow-empty "$@"
