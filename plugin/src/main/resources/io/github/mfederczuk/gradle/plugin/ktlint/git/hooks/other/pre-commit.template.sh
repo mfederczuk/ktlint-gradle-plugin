@@ -40,11 +40,26 @@ fi
 
 #endregion
 
+is_absolute_pathname() {
+	test "${1#/}" != "$1"
+}
+
 #region setting up temporary directory
 
 base_tmp_dir_pathname="${TMPDIR:-"${TMP:-"${TEMP:-"${TEMPDIR:-"${TMP_DIR:-"${TEMP_DIR:-"/tmp"}"}"}"}"}"}"
 base_tmp_dir_pathname="${base_tmp_dir_pathname%"/"}"
+
+if ! is_absolute_pathname "$base_tmp_dir_pathname"; then
+	cwd="$(pwd -L && printf x)"
+	cwd="${cwd%"$(printf '\nx')"}"
+
+	base_tmp_dir_pathname="$cwd/$base_tmp_dir_pathname"
+
+	unset -v cwd
+fi
+
 readonly base_tmp_dir_pathname
+
 
 process_tmp_dir_pathname="$base_tmp_dir_pathname/ktlint-gradle-plugin-$$"
 readonly process_tmp_dir_pathname

@@ -36,6 +36,11 @@ fi
 
 #endregion
 
+is_absolute_pathname() {
+	# Windows-Changed: different way to check for absolute pathname
+	test "${1#?:\\}" != "$1"
+}
+
 #region setting up temporary directory
 
 # BEGIN Windows-Changed:
@@ -53,7 +58,18 @@ if [ -z "$base_tmp_dir_pathname" ]; then
 	unset -v username
 fi
 # END Windows-Changed
+
+if ! is_absolute_pathname "$base_tmp_dir_pathname"; then
+	# Windows-Changed: no need to preserve potential trailing newline character
+	cwd="$(pwd -L)"
+
+	base_tmp_dir_pathname="$cwd/$base_tmp_dir_pathname"
+
+	unset -v cwd
+fi
+
 readonly base_tmp_dir_pathname
+
 
 # Windows-Changed: slash to backslash & different filename; converted kebab-case to PascalCase
 process_tmp_dir_pathname="$base_tmp_dir_pathname\\KtlintGradlePlugin$$"
