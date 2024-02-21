@@ -155,30 +155,28 @@ readonly using_intellij_idea_terminal
 
 #endregion
 
-#region detecting stdin color support
+is_stdin_color_supported() {
+	if [ -n "${NO_COLOR-}" ] || [ ! -t 1 ]; then
+		return 32
+	fi
 
-stdin_supports_color=false
-
-if [ -z "${NO_COLOR-}" ] && [ -t 1 ]; then
 	case "${TERM-}" in
 		('xterm-color'|*'-256color'|'xterm-kitty')
-			stdin_supports_color=true
+			return 0
 			;;
 	esac
 
-	if ! $stdin_supports_color && command -v tput > '/dev/null' && tput 'setaf' '1' 1> '/dev/null' 2>&1; then
-		stdin_supports_color=true
+	if command -v tput > '/dev/null' && tput setaf 1 1> '/dev/null' 2>&1; then
+		return 0
 	fi
-fi
 
-readonly stdin_supports_color
-
-#endregion
+	return 32
+}
 
 #region running ktlint
 
 ktlint_color_opt_arg=''
-if $stdin_supports_color; then
+if is_stdin_color_supported; then
 	ktlint_color_opt_arg='--color'
 fi
 readonly ktlint_color_opt_arg
