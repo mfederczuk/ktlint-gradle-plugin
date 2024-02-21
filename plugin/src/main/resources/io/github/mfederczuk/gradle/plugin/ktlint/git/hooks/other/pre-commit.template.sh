@@ -142,18 +142,10 @@ fi
 
 #endregion
 
-#region detecting IntelliJ IDEA terminal
-
-using_intellij_idea_terminal=false
-
-if [ "${TERM-}" = 'dumb' ]; then
-	# when executed via IntelliJ IDEA, $TERM has the value "dumb"
-	using_intellij_idea_terminal=true
-fi
-
-readonly using_intellij_idea_terminal
-
-#endregion
+is_maybe_using_intellij_idea_terminal() {
+	# if git is executed via IntelliJ IDEA, then the environment variable $TERM is set to the value "dumb"
+	test "${TERM-}" = 'dumb'
+}
 
 is_stdin_color_supported() {
 	if [ -n "${NO_COLOR-}" ] || [ ! -t 1 ]; then
@@ -182,7 +174,7 @@ fi
 readonly ktlint_color_opt_arg
 
 ktlint_relative_opt_arg='--relative'
-if $using_intellij_idea_terminal; then
+if is_maybe_using_intellij_idea_terminal; then
 	# print absolute pathnames if executed via IntelliJ IDEA so that they become clickable
 	ktlint_relative_opt_arg=''
 fi
