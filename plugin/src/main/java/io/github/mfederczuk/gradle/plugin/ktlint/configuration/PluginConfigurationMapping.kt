@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Michael Federczuk
+ * Copyright (c) 2024 Michael Federczuk
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
@@ -14,6 +14,7 @@ import org.gradle.api.provider.ProviderFactory
 import javax.annotation.CheckReturnValue
 
 private val KTLINT_MIN_SUPPORTED_VERSION: SemVer = SemVer(0, 50, 0)
+private val KTLINT_REJECTED_VERSION: SemVer = SemVer(1, 2, 0)
 
 @CheckReturnValue
 internal fun KtlintPluginExtension.toConfiguration(providerFactory: ProviderFactory): Provider<PluginConfiguration> {
@@ -78,6 +79,12 @@ private fun mapVersionString(versionString: String): SemVer {
 	check(version >= KTLINT_MIN_SUPPORTED_VERSION) {
 		"Configured ktlint version ($version) is lower than " +
 			"the minimum supported ktlint version. ($KTLINT_MIN_SUPPORTED_VERSION)"
+	}
+
+	check(version != KTLINT_REJECTED_VERSION) {
+		"Rejecting the configured ktlint version ($version) because it contains a bug that breaks the behavior of " +
+			"the Git pre-commit hook script: <https://github.com/pinterest/ktlint/issues/2578>.\n" +
+			"Use the version ${SemVer(1, 2, 1)} instead"
 	}
 
 	return version

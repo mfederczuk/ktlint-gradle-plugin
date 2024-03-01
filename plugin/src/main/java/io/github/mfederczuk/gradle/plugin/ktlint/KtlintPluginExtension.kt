@@ -13,6 +13,11 @@ public interface KtlintPluginExtension {
 	 * This string must be a valid [semantic version](https://semver.org/spec/v2.0.0.html).
 	 *
 	 * This property doesn't have a default value — a version must be explicitly set.
+	 *
+	 * > **Note:** The version `1.2.0` will be rejected because it contains
+	 * > [a bug](https://github.com/pinterest/ktlint/issues/2578) that breaks the behavior of
+	 * > the Git pre-commit hook script.
+	 * > Use the version `1.2.1` instead.
 	 */
 	public val version: Property<String>
 
