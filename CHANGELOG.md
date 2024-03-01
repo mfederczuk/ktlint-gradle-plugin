@@ -11,7 +11,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [**Keep a Changelog v1.0.0**](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased ##
+## [v0.1.0-indev09] - 2024-03-01 ##
+
+[v0.1.0-indev09]: <https://github.com/mfederczuk/ktlint-github-gradle-plugin/releases/tag/v0.1.0-indev09>
 
 ### Changed ###
 
