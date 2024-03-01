@@ -44,6 +44,44 @@ git() {
 	command git -c diff.noprefix=false --no-pager "$@"
 }
 
+git_apply() {
+	git apply --ignore-whitespace --whitespace=nowarn --allow-empty "$@"
+}
+
+is_absolute_pathname() {
+	test "${1#/}" != "$1"
+}
+
+mkdirp_parent() {
+	set -- "$(dirname -- "$1" && printf x)"
+	set -- "${1%"$(printf '\nx')"}"
+
+	mkdir -p -- "$1"
+}
+
+is_maybe_using_intellij_idea_terminal() {
+	# if git is executed via IntelliJ IDEA, then the environment variable $TERM is set to the value "dumb"
+	test "${TERM-}" = 'dumb'
+}
+
+is_stdin_color_supported() {
+	if [ -n "${NO_COLOR-}" ] || [ ! -t 1 ]; then
+		return 32
+	fi
+
+	case "${TERM-}" in
+		('xterm-color'|*'-256color'|'xterm-kitty')
+			return 0
+			;;
+	esac
+
+	if command -v tput > '/dev/null' && tput setaf 1 1> '/dev/null' 2>&1; then
+		return 0
+	fi
+
+	return 32
+}
+
 #region bare repository check
 
 is_bare_repository="$(git rev-parse --is-bare-repository)"
@@ -56,17 +94,6 @@ fi
 unset -v is_bare_repository
 
 #endregion
-
-is_absolute_pathname() {
-	test "${1#/}" != "$1"
-}
-
-mkdirp_parent() {
-	set -- "$(dirname -- "$1" && printf x)"
-	set -- "${1%"$(printf '\nx')"}"
-
-	mkdir -p -- "$1"
-}
 
 #region setting up temporary directory
 
@@ -95,14 +122,6 @@ remove_process_tmp_dir() {
 
 trap remove_process_tmp_dir EXIT
 trap 'trap - EXIT; remove_process_tmp_dir' INT QUIT TERM
-
-#endregion
-
-#region functions
-
-git_apply() {
-	git apply --ignore-whitespace --whitespace=nowarn --allow-empty "$@"
-}
 
 #endregion
 
@@ -154,29 +173,6 @@ if ! java --dry-run -classpath "$ktlint_classpath" "$ktlint_main_class_name"; th
 fi
 
 #endregion
-
-is_maybe_using_intellij_idea_terminal() {
-	# if git is executed via IntelliJ IDEA, then the environment variable $TERM is set to the value "dumb"
-	test "${TERM-}" = 'dumb'
-}
-
-is_stdin_color_supported() {
-	if [ -n "${NO_COLOR-}" ] || [ ! -t 1 ]; then
-		return 32
-	fi
-
-	case "${TERM-}" in
-		('xterm-color'|*'-256color'|'xterm-kitty')
-			return 0
-			;;
-	esac
-
-	if command -v tput > '/dev/null' && tput setaf 1 1> '/dev/null' 2>&1; then
-		return 0
-	fi
-
-	return 32
-}
 
 #region running ktlint
 
