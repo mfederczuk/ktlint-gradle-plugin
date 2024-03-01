@@ -1,13 +1,13 @@
 <!--
-  Copyright (c) 2023 Michael Federczuk
+  Copyright (c) 2024 Michael Federczuk
   SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
 # ktlint Gradle Plugin #
 
-[version_shield]: https://img.shields.io/badge/version-0.1.0--indev08-informational.svg
-[release_page]: https://github.com/mfederczuk/ktlint-gradle-plugin/releases/tag/v0.1.0-indev08 "Release v0.1.0-indev08"
-[![version: 0.1.0-indev08][version_shield]][release_page]
+[version_shield]: https://img.shields.io/badge/version-0.1.0--indev09-informational.svg
+[release_page]: https://github.com/mfederczuk/ktlint-gradle-plugin/releases/tag/v0.1.0-indev09 "Release v0.1.0-indev09"
+[![version: 0.1.0-indev09][version_shield]][release_page]
 [![Changelog](https://img.shields.io/badge/-Changelog-informational.svg)](CHANGELOG.md "Changelog")
 
 ## About ##
@@ -61,7 +61,7 @@ The minimum supported ktlint version is `0.50.0`.
 
 ```kotlin
 plugins {
-	id("io.github.mfederczuk.ktlint") version "0.1.0-indev08"
+	id("io.github.mfederczuk.ktlint") version "0.1.0-indev09"
 }
 
 repositories {
@@ -91,7 +91,7 @@ buildscript {
 		maven("https://plugins.gradle.org/m2/")
 	}
 	dependencies {
-		classpath("io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev08")
+		classpath("io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev09")
 	}
 }
 
@@ -120,7 +120,7 @@ ktlint {
 
 ```groovy
 plugins {
-	id 'io.github.mfederczuk.ktlint' version '0.1.0-indev08'
+	id 'io.github.mfederczuk.ktlint' version '0.1.0-indev09'
 }
 
 repositories {
@@ -150,7 +150,7 @@ buildscript {
 		maven { url 'https://plugins.gradle.org/m2/' }
 	}
 	dependencies {
-		classpath 'io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev08'
+		classpath 'io.github.mfederczuk:ktlint-gradle-plugin:0.1.0-indev09'
 	}
 }
 

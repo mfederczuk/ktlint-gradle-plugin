@@ -5,7 +5,7 @@ import io.github.mfederczuk.gradle.plugin.ktlint.tasks.KtlintFormattingTask
 plugins {
 	kotlin("jvm") version "1.9.22"
 	application
-	id("io.github.mfederczuk.ktlint") version "0.1.0-indev08"
+	id("io.github.mfederczuk.ktlint") version "0.1.0-indev09"
 }
 
 repositories {
